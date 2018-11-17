@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="parse">
+      <UniqueIdentifier>{fe12bd22-964e-4fc6-8735-a013bc42d70c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="defaults">
+      <UniqueIdentifier>{b3938b50-3f91-449b-a688-1162d2bcd0fd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="spice.cpp">
+      <Filter>parse</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="kcl.cpp" />
+    <ClCompile Include="helpers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="spice.h">
+      <Filter>parse</Filter>
+    </ClInclude>
+    <ClInclude Include="test_circuit.h">
+      <Filter>defaults</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers.h" />
+    <ClInclude Include="kcl.h" />
+    <ClInclude Include="linSolver.h" />
+  </ItemGroup>
+</Project>
