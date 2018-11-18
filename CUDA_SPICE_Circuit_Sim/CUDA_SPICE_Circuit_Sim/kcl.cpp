@@ -18,29 +18,63 @@ void R_toMat(Resistor* R, float** gMat) {
 	}
 }
 
-void Vdc_toMat(Vdc* V, float** gMat, float* iMat, int num_nodes) {
+int Vdc_toMat(Vdc* V, float** gMat, float* iMat, int num_nodes) {
 	int n_n = V->node_n - 1; // pos node
 	int n_p = V->node_p - 1; // neg node
 
-	// abstract vsource to current
-	float self = gMat[n_p][n_p];
-	float c = V->val * self;
 
-	// edit pos. node:
-	if (n_p >= 0) {
+	if ((n_n < 0 && n_p < 0) || n_n == n_p) {
+		// error, shorted
+		return -1;
+	}
+
+	float self;
+	float c;
+
+	// negative node grounded
+	if (n_p >= 0 && n_n < 0) {
+		// abstract vsource to current
+		self = gMat[n_p][n_p];
+		c = V->val * self;
+
 		for (int i = 0; i < num_nodes; i++) {
 			if (i != n_p) gMat[n_p][i] = 0.0f;
 		}
 		iMat[n_p] += c;
 	}
+	// positive node grounded
+	else if (n_p < 0 && n_n >= 0) {
+		// abstract vsource to current
+		self = gMat[n_n][n_n];
+		c = V->val * self;
 
-	if (n_n >= 0) iMat[n_n] -= c;
-
-	if (n_n >= 0 && n_p >= 0) {
 		for (int i = 0; i < num_nodes; i++) {
-			if (i != n_p) gMat[n_n][i] += gMat[n_p][i];
+			if (i != n_n) gMat[n_n][i] = 0.0f;
 		}
+		iMat[n_n] -= c;
 	}
+
+	// neither grounded
+	else {
+
+		self = gMat[n_n][n_n];
+		c = V->val * self;
+		float temp;
+
+		for (int i = 0; i < num_nodes; i++) {
+			temp = gMat[n_p][i];
+			gMat[n_p][i] += gMat[n_n][i];
+			gMat[n_n][i] += temp;
+		}
+
+		gMat[n_p][n_p] += self;
+		gMat[n_p][n_n] -= self;
+
+		iMat[n_p] += c;
+	}
+
+
+	return 0;
 }
 
 void Idc_toMat(Idc* I, float* iMat) {

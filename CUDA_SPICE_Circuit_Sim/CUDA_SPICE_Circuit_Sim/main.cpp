@@ -1,20 +1,14 @@
-#include <cstdio>
-#include <iostream>
-#include "helpers.h"
-#include "test_circuit.h"
-#include "kcl.h"
-#include "linSolver.h"
-
+#include "main.h"
 
 int main() {
-	Resistor* rList = testRList();
-	Vdc* vdcList = testVList();
-	Idc* idcList = testIList();
+	Resistor* rList = testRList2();
+	Vdc* vdcList = testVList2();
+	Idc* idcList = testIList1();
 
-	int num_nodes = 3; // node 0 = GND
-	int num_r = 5;
+	int num_nodes = 4; // node 0 = GND
+	int num_r = 6;
 	int num_vdc = 1;
-	int num_idc = 1;
+	int num_idc = 0;
 
 	// List resistors
 	cout << "Resistors:\n";
@@ -90,4 +84,6 @@ int main() {
 	free(iMat);
 	free(vMat);
 	return 0;
+
+
 }

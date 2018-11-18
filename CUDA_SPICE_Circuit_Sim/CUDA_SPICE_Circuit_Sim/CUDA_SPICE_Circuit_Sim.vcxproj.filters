@@ -29,5 +29,8 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="kcl.h" />
     <ClInclude Include="linSolver.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="cuda_setup.h" />
+    <ClInclude Include="cuda_LinSover.h" />
   </ItemGroup>
 </Project>
