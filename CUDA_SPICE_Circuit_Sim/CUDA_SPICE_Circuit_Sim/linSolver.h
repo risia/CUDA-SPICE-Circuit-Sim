@@ -42,6 +42,5 @@ void matSolve(float** gMat, float* iMat, float* vMat, int m, int n, int k) {
 	for (int i = 0; i < m - k; i++) {
 		c = gMat[i][m - k - 1] * v;
 		iMat[i] -= c;
-		//gMat[i][m - k - 1] = 0.0f;
 	}
 }

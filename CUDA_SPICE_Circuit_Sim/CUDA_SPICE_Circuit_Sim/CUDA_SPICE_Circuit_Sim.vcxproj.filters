@@ -2,6 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="cuda_LinSolver.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="parse">
@@ -18,6 +19,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="kcl.cpp" />
     <ClCompile Include="helpers.cpp" />
+    <ClCompile Include="cuda_setup.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spice.h">
@@ -31,6 +33,6 @@
     <ClInclude Include="linSolver.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="cuda_setup.h" />
-    <ClInclude Include="cuda_LinSover.h" />
+    <ClInclude Include="cuda_LinSolver.h" />
   </ItemGroup>
 </Project>

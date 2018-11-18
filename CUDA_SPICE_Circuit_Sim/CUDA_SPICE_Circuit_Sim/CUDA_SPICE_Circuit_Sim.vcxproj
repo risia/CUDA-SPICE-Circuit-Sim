@@ -105,6 +105,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>compute_50,sm_50</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,13 +149,14 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
+      <CodeGeneration>compute_50,sm_50</CodeGeneration>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cuda_LinSover.h" />
+    <ClInclude Include="cuda_LinSolver.h" />
     <ClInclude Include="cuda_setup.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="kcl.h" />
@@ -164,6 +166,12 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="spice.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="cuda_LinSolver.cu">
+      <FileType>CppCode</FileType>
+    </CudaCompile>
+    <CudaCompile Include="cuda_setup.cu">
+      <FileType>CppCode</FileType>
+    </CudaCompile>
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="kcl.cpp" />
     <ClCompile Include="main.cpp" />

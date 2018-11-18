@@ -51,8 +51,20 @@ int main() {
 	cout << mat2DToStr(gMat, num_nodes, num_nodes);
 
 	// VDC Source populates G and I matrices
+	int err_test;
 	for (int i = 0; i < num_vdc; i++) {
-		Vdc_toMat(vdcList + i, gMat, iMat, num_nodes);
+		err_test = Vdc_toMat(vdcList + i, gMat, iMat, num_nodes);
+		if (err_test == -1) {
+			cout << "ERROR! VDC Shorted: " << vdcList[i].name << "\n";
+			free(rList);
+			free(vdcList);
+			free(idcList);
+			freeMat2D(gMat, num_nodes);
+			free(iMat);
+			free(vMat);
+			system("pause");
+			return -1;
+		}
 	}
 	for (int i = 0; i < num_idc; i++) {
 		Idc_toMat(idcList + i, iMat);
@@ -61,25 +73,19 @@ int main() {
 	cout << "G Matrix after Vdc & Idc:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 
-	for (int i = 0; i < num_nodes - 1; i++) {
-		matReduce(gMat, iMat, num_nodes, num_nodes, i);
-	}
+	gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
-	cout << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
-	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 
-	for (int i = 0; i < num_nodes; i++) {
-		matSolve(gMat, iMat, vMat, num_nodes, num_nodes, i);
-	}
-
-	cout << "\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
+	cout << "\nSolution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	system("pause");
 
+	//cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
 	free(rList);
 	free(vdcList);
+	free(idcList);
 	freeMat2D(gMat, num_nodes);
 	free(iMat);
 	free(vMat);

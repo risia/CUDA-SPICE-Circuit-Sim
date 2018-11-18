@@ -173,7 +173,7 @@ Vdc* testVList3() {
 Idc* testIList1() {
 	Idc i0;
 	i0.name = "IDC0";
-	i0.val = 0.001;
+	i0.val = 0.001f;
 	i0.node_n = 0;
 	i0.node_p = 2;
 

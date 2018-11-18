@@ -1,23 +1,14 @@
 #pragma once
 
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include <stdexcept>
 
 #define FILENAME (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define checkCUDAError(msg) checkCUDAErrorFn(msg, FILENAME, __LINE__)
 
-void checkCUDAErrorFn(const char *msg, const char *file, int line) {
-	cudaError_t err = cudaGetLastError();
-	if (cudaSuccess == err) {
-		return;
-	}
+void checkCUDAErrorFn(const char *msg, const char *file, int line);
 
-	fprintf(stderr, "CUDA error");
-	if (file) {
-		fprintf(stderr, " (%s:%d)", file, line);
-	}
-	fprintf(stderr, ": %s: %s\n", msg, cudaGetErrorString(err));
-	exit(EXIT_FAILURE);
-}
-
-
+void setupDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* dev_vMat);
+void copyDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* vMat, float* dev_vMat);
+void cleanDevMats(float* dev_gMat, float* dev_iMat, float* dev_vMat);
