@@ -4,8 +4,9 @@
 
  /* 
  
- starting with element list of just resistors to test
- setting up matrices and solving
+ starting with element list of just resistors 
+ and some ideal sources
+ to test setting up matrices and solving
 
  */
 
@@ -99,6 +100,37 @@ Resistor* testRList2() {
 	return rList;
 }
 
+Resistor* testRList3() {
+
+	Resistor r1;
+	r1.name = "R1";
+	r1.val = 1.0f;
+	r1.node1 = 1;
+	r1.node2 = 2;
+
+	Resistor r2;
+	r2.name = "R2";
+	r2.val = 1.0f;
+	r2.node1 = 2;
+	r2.node2 = 0;
+
+	Resistor r3;
+	r3.name = "R3";
+	r3.val = 1.0f;
+	r3.node1 = 0;
+	r3.node2 = 2;
+
+	Resistor* rList = (Resistor*)malloc(3 * sizeof(Resistor));
+	rList[0] = r1;
+	rList[1] = r2;
+	rList[2] = r3;
+
+	return rList;
+}
+
+
+
+
 Vdc* testVList1() {
 	Vdc v0;
 	v0.name = "VDC0";
@@ -118,6 +150,19 @@ Vdc* testVList2() {
 	v0.val = 1;
 	v0.node_n = 2;
 	v0.node_p = 3;
+
+	Vdc* vList = (Vdc*)malloc(sizeof(Vdc));
+	vList[0] = v0;
+
+	return vList;
+}
+
+Vdc* testVList3() {
+	Vdc v0;
+	v0.name = "VDC0";
+	v0.val = 1;
+	v0.node_n = 1;
+	v0.node_p = 0;
 
 	Vdc* vList = (Vdc*)malloc(sizeof(Vdc));
 	vList[0] = v0;

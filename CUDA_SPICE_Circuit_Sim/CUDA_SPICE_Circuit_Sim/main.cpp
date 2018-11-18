@@ -1,12 +1,12 @@
 #include "main.h"
 
 int main() {
-	Resistor* rList = testRList2();
-	Vdc* vdcList = testVList2();
+	Resistor* rList = testRList3();
+	Vdc* vdcList = testVList3();
 	Idc* idcList = testIList1();
 
-	int num_nodes = 4; // node 0 = GND
-	int num_r = 6;
+	int num_nodes = 2; // node 0 = GND
+	int num_r = 3;
 	int num_vdc = 1;
 	int num_idc = 0;
 
