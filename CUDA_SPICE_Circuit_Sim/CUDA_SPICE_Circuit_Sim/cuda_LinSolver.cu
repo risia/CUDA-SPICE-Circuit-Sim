@@ -5,7 +5,6 @@
 
 // k is the current row being used to reduce the rest
 __global__ void kernMatReduce(int n, float* gMat, float* iMat, int k) {
-
 	int i = blockDim.x * blockIdx.x + threadIdx.x;  // Row index
 	int j = blockDim.y * blockIdx.y + threadIdx.y;  // Column index
 
@@ -18,7 +17,6 @@ __global__ void kernMatReduce(int n, float* gMat, float* iMat, int k) {
 	int ref_idx = k * n;
 	// error, need to return somehow?
 	if (gMat[ref_idx + k] == 0) return;
-
 
 	int idx = i * n;
 
@@ -110,9 +108,6 @@ void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat) {
 	cudaDeviceSynchronize();
 
 	kernPlugKnownV << < numBlocks3D, blockSize >> > (n, dev_gMat, dev_iMat, dev_vMat);
-
-	//numBlocks3D = dim3(numBlocks, 1, 1);
-	//blockSize = dim3(BS_X, 1, 1);
 
 	kernMatSolve<<<numBlocks, BS_X>>>(n, dev_gMat, dev_iMat, dev_vMat);
 	checkCUDAError("Solution Failure!\n");

@@ -24,6 +24,12 @@ Each line represents a separate command or element unless a + sign is given
 https://www.seas.upenn.edu/~jan/spice/spice.overview.html
 */
 
+struct Model {
+	float u0 = 540.0f;
+	float tox = 1.41e-8;
+	float vt0 = 0.7;
+	char type = 'n';
+};
 
 struct Resistor {
 	float val;
@@ -34,24 +40,24 @@ struct Resistor {
 
 struct Capacitor {
 	float val;
-	char* node1;
-	char* node2;
+	int node1;
+	int node2;
 };
 
 struct Inductor {
 	float val;
-	char* node1;
-	char* node2;
+	int node1;
+	int node2;
 };
 
 struct Transistor {
 	float l; // length
 	float w; // width
-	char* g; // gate net
-	char* s; // source
-	char* d; // drain
-	char* b; // bulk
-	int model;
+	int g; // gate net
+	int d; // drain
+	int s; // source
+	int b; // bulk
+	Model* model;
 };
 
 struct Vdc {

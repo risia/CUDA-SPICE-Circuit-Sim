@@ -164,8 +164,10 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="main.h" />
     <ClInclude Include="test_circuit.h" />
     <ClInclude Include="spice.h" />
+    <ClInclude Include="transistor.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="transistor.cpp" />
     <CudaCompile Include="cuda_LinSolver.cu">
       <FileType>CppCode</FileType>
     </CudaCompile>

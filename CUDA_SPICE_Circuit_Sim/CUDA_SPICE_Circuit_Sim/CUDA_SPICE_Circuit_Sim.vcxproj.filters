@@ -20,6 +20,7 @@
     <ClCompile Include="kcl.cpp" />
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="cuda_setup.cu" />
+    <ClCompile Include="transistor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spice.h">
@@ -34,5 +35,6 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="cuda_setup.h" />
     <ClInclude Include="cuda_LinSolver.h" />
+    <ClInclude Include="transistor.h" />
   </ItemGroup>
 </Project>

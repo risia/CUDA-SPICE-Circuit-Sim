@@ -3,7 +3,7 @@
 int main() {
 	Netlist netlist;
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/VCCSTest.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Test1.spi";
 	parseNetlist(file, netlist);
 
 	Resistor* rList = netlist.rList.data();
