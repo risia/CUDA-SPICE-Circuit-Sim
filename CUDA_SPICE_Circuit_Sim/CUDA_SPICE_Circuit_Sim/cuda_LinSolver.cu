@@ -32,12 +32,27 @@ __global__ void kernMatReduce(int n, float* gMat, float* iMat, int k) {
 	gMat[idx + j] -= ratio * gMat[ref_idx + j];
 }
 
+__global__ void kernPlugKnownV(int n, float* gMat, float* iMat, float* vMat) {
+	int i = blockDim.x * blockIdx.x + threadIdx.x;  // Row index
+	int j = blockDim.y * blockIdx.y + threadIdx.y;  // Column index
+
+	if (i >= n || j >= n) return;
+	
+	float v = vMat[j];
+	float g = gMat[i * n + j];
+	if (v != 0.0f && g != 0.0f) {
+		float c = -g * v;
+		atomicAdd(iMat + i, c);
+	}
+}
+
 __global__ void kernMatSolve(int n, float* gMat, float* iMat, float* vMat) {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;  // Row index
 
 	// keep in matrix bounds
 	// matrix always square
 	if (i >= n) return;
+	if (vMat[i] != 0.0f) return;
 
 	float v = iMat[i] / gMat[i * n + i];
 	vMat[i] = v;
@@ -77,6 +92,8 @@ void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat) {
 	}
 	cudaMemcpy(dev_iMat, iMat, n * sizeof(float), cudaMemcpyHostToDevice);
 	checkCUDAError("Host iMat MemCpy Failure!\n");
+	cudaMemcpy(dev_vMat, vMat, n * sizeof(float), cudaMemcpyHostToDevice);
+	checkCUDAError("Host vMat MemCpy Failure!\n");
 
 
 	int numBlocks = ceil(float(n) / BS_X);
@@ -92,8 +109,10 @@ void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat) {
 	}
 	cudaDeviceSynchronize();
 
-	numBlocks3D = dim3(numBlocks, 1, 1);
-	blockSize = dim3(BS_X, 1, 1);
+	kernPlugKnownV << < numBlocks3D, blockSize >> > (n, dev_gMat, dev_iMat, dev_vMat);
+
+	//numBlocks3D = dim3(numBlocks, 1, 1);
+	//blockSize = dim3(BS_X, 1, 1);
 
 	kernMatSolve<<<numBlocks, BS_X>>>(n, dev_gMat, dev_iMat, dev_vMat);
 	checkCUDAError("Solution Failure!\n");

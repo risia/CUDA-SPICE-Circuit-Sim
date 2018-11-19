@@ -1,0 +1,16 @@
+*** SPICE deck for cell VCCSTest{sch} from library CUDA_SPICE
+*** Created on Sun Nov 18, 2018 22:31:40
+*** Last revised on Sun Nov 18, 2018 22:33:40
+*** Written on Sun Nov 18, 2018 22:33:53 by Electric VLSI Design System, version 9.07
+*** Layout tech: mocmos, foundry MOSIS
+*** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
+* Model cards are described in this file:
+.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+
+.global gnd
+
+*** TOP LEVEL CELL: VCCSTest{sch}
+Rres@0 gnd net@11 100
+GVCCS@0 net@11 gnd net@0 gnd 0.5
+VVDC@0 net@0 gnd DC 1V AC 0V 0
+.END

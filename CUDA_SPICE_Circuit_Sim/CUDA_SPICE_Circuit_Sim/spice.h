@@ -51,7 +51,7 @@ struct Transistor {
 	char* s; // source
 	char* d; // drain
 	char* b; // bulk
-
+	int model;
 };
 
 struct Vdc {
@@ -68,10 +68,22 @@ struct Idc {
 	int node_n;
 };
 
+struct VCCS {
+	float g;
+	char* name;
+	// current source nodes
+	int ip;
+	int in;
+	// control voltage nodes
+	int vp;
+	int vn;
+};
+
 struct Netlist {
 	vector<Resistor> rList;
 	vector<Vdc> vdcList;
 	vector<Idc> idcList;
+	vector<VCCS> vccsList;
 	vector<char*> netNames;
 };
 

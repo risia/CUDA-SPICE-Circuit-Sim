@@ -7,6 +7,7 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 
 
 	vector<Idc>().swap(netlist.idcList);
+	vector<VCCS>().swap(netlist.vccsList);
 	vector<Vdc>().swap(netlist.vdcList);
 	vector<Resistor>().swap(netlist.rList);
 	vector<char*>().swap(netlist.netNames);
@@ -23,6 +24,7 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 		//cout << oneline << endl;
 	}
 
+	/*
 	// List resistors
 	cout << "File Resistors:\n";
 	int num_r = netlist.rList.size();
@@ -40,6 +42,7 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 		printf(netlist.vdcList[i].name);
 		printf(": %d %d %f V\n", netlist.vdcList[i].node_p, netlist.vdcList[i].node_n, netlist.vdcList[i].val);
 	}
+	*/
 
 	inFile.close();
 
@@ -78,7 +81,7 @@ int parseElement(char* line, Netlist& netlist) {
 		netlist.rList.push_back(r);
 	}
 	// parse VDC
-	if (type == 'V') {
+	else if (type == 'V') {
 		Vdc v;
 
 		// get name
@@ -103,6 +106,65 @@ int parseElement(char* line, Netlist& netlist) {
 		}
 
 		netlist.vdcList.push_back(v);
+	}
+	// Parsse IDC
+	else if (type == 'I') {
+		Idc i;
+
+		// get name
+		token = strtok(line + 1, delim);
+		i.name = new char[strlen(token) + 1];
+		strcpy(i.name, token);
+
+		// node p
+		token = strtok(NULL, delim);
+		i.node_p = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// node n
+		token = strtok(NULL, delim);
+		i.node_n = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// val
+
+		token = strtok(NULL, delim);
+		if (strcmp(token, "DC") == 0) {
+			token = strtok(NULL, delim);
+			i.val = atof(token);
+		}
+
+		netlist.idcList.push_back(i);
+	}
+
+	else if (type == 'G') {
+		VCCS iv;
+
+		// get name
+		token = strtok(line + 1, delim);
+		iv.name = new char[strlen(token) + 1];
+		strcpy(iv.name, token);
+
+		// node ip
+		token = strtok(NULL, delim);
+		iv.ip = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// node in
+		token = strtok(NULL, delim);
+		iv.in = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// node vp
+		token = strtok(NULL, delim);
+		iv.vp = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// node vn
+		token = strtok(NULL, delim);
+		iv.vn = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// gain
+		token = strtok(NULL, delim);
+		iv.g = atof(token);
+
+		netlist.vccsList.push_back(iv);
+
 	}
 
 	return 0;
