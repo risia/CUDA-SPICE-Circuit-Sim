@@ -1,3 +1,12 @@
+#pragma once
+#include<iostream> 
+#include<fstream>
+#include <vector>
+
+using namespace std;
+
+#define MAX_LINE 256
+
 /*
 Functions to parse spice netlist files
 
@@ -15,7 +24,6 @@ Each line represents a separate command or element unless a + sign is given
 https://www.seas.upenn.edu/~jan/spice/spice.overview.html
 */
 
-#pragma once
 
 struct Resistor {
 	float val;
@@ -60,3 +68,13 @@ struct Idc {
 	int node_n;
 };
 
+struct Netlist {
+	vector<Resistor> rList;
+	vector<Vdc> vdcList;
+	vector<Idc> idcList;
+	vector<char*> netNames;
+};
+
+int parseNetlist(char* filepath, Netlist &netlist);
+int parseElement(char* line, Netlist& netlist);
+int findNode(vector<char*> &nodeList, char* name, int n);

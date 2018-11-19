@@ -1,14 +1,19 @@
 #include "main.h"
 
 int main() {
-	Resistor* rList = testRList3();
-	Vdc* vdcList = testVList3();
-	Idc* idcList = testIList1();
+	Netlist netlist;
 
-	int num_nodes = 2; // node 0 = GND
-	int num_r = 3;
-	int num_vdc = 1;
-	int num_idc = 0;
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Test3.spi";
+	parseNetlist(file, netlist);
+
+	Resistor* rList = netlist.rList.data();
+	Vdc* vdcList = netlist.vdcList.data();
+	Idc* idcList = netlist.idcList.data();
+
+	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
+	int num_r = netlist.rList.size();
+	int num_vdc = netlist.vdcList.size();
+	int num_idc = netlist.idcList.size();
 
 	// List resistors
 	cout << "Resistors:\n";
@@ -56,10 +61,10 @@ int main() {
 		err_test = Vdc_toMat(vdcList + i, gMat, iMat, num_nodes);
 		if (err_test == -1) {
 			cout << "ERROR! VDC Shorted: " << vdcList[i].name << "\n";
-			free(rList);
-			free(vdcList);
+			//free(rList);
+			//free(vdcList);
 			free(idcList);
-			freeMat2D(gMat, num_nodes);
+			//freeMat2D(gMat, num_nodes);
 			free(iMat);
 			free(vMat);
 			system("pause");
@@ -83,9 +88,9 @@ int main() {
 	system("pause");
 
 	//cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
-	free(rList);
-	free(vdcList);
-	free(idcList);
+	//free(rList);
+	//free(vdcList);
+	//free(idcList);
 	freeMat2D(gMat, num_nodes);
 	free(iMat);
 	free(vMat);
