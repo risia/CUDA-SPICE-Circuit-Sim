@@ -10,12 +10,14 @@ int main() {
 	Vdc* vdcList = netlist.vdcList.data();
 	Idc* idcList = netlist.idcList.data();
 	VCCS* vccsList = netlist.vccsList.data();
+	Transistor* mosList = netlist.mosList.data();
 
 	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
 	int num_r = netlist.rList.size();
 	int num_vdc = netlist.vdcList.size();
 	int num_idc = netlist.idcList.size();
 	int num_vccs = netlist.vccsList.size();
+	int num_mos = netlist.mosList.size();
 
 	// List resistors
 	cout << "Resistors:\n";
@@ -37,6 +39,14 @@ int main() {
 		printf(idcList[i].name);
 		printf(": %f A\n", idcList[i].val);
 	}
+
+	// List MOSFETS
+	cout << "MOSFETS:\n";
+	for (int i = 0; i < num_mos; i++) {
+		printf(mosList[i].name);
+		printf(": Model = %s, L = %f um, W = %f um\n", mosList[i].model->name, mosList[i].l * 1e6, mosList[i].w * 1e6);
+	}
+
 	cout << "\n";
 
 

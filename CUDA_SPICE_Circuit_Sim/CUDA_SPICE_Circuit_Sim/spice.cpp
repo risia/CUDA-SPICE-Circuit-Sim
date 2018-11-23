@@ -10,9 +10,18 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 	vector<VCCS>().swap(netlist.vccsList);
 	vector<Vdc>().swap(netlist.vdcList);
 	vector<Resistor>().swap(netlist.rList);
+	vector<Transistor>().swap(netlist.mosList);
+	vector<Model*>().swap(netlist.modelList);
 	vector<char*>().swap(netlist.netNames);
 
+	// Default ground node
 	netlist.netNames.push_back("gnd");
+
+	// Default test model
+	Model* M_ptr = new Model();
+
+	netlist.modelList.push_back(M_ptr);
+
 
 	while (inFile)
 	{
@@ -21,28 +30,8 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 		if (oneline[0] != '.') parseElement(oneline, netlist);
 
 
-		//cout << oneline << endl;
+		else cout << oneline << endl;
 	}
-
-	/*
-	// List resistors
-	cout << "File Resistors:\n";
-	int num_r = netlist.rList.size();
-
-	for (int i = 0; i < num_r; i++) {
-		printf(netlist.rList[i].name);
-		printf(": %d %d %f Ohms\n", netlist.rList[i].node1, netlist.rList[i].node2, netlist.rList[i].val);
-	}
-
-	// List VDCS
-	cout << "File VDCs:\n";
-	int num_vdc = netlist.vdcList.size();
-
-	for (int i = 0; i < num_vdc; i++) {
-		printf(netlist.vdcList[i].name);
-		printf(": %d %d %f V\n", netlist.vdcList[i].node_p, netlist.vdcList[i].node_n, netlist.vdcList[i].val);
-	}
-	*/
 
 	inFile.close();
 
@@ -134,7 +123,6 @@ int parseElement(char* line, Netlist& netlist) {
 		i.node_n = findNode(netlist.netNames, token, netlist.netNames.size());
 
 		// val
-
 		token = strtok(NULL, delim);
 		if (strcmp(token, "DC") == 0) {
 			token = strtok(NULL, delim);
@@ -183,6 +171,55 @@ int parseElement(char* line, Netlist& netlist) {
 		netlist.vccsList.push_back(iv);
 
 	}
+	else if (type == 'M') {
+		Transistor T;
+
+		// get name
+		token = strtok(line + 1, delim);
+		T.name = new char[strlen(token) + 1];
+		strcpy(T.name, token);
+
+		// drain
+		token = strtok(NULL, delim);
+		T.d = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// gate
+		token = strtok(NULL, delim);
+		T.g = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// source
+		token = strtok(NULL, delim);
+		T.s = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// bulk
+		token = strtok(NULL, delim);
+		T.b = findNode(netlist.netNames, token, netlist.netNames.size());
+
+		// Model
+		token = strtok(NULL, delim);
+		T.model = findModel(netlist.modelList, token, netlist.modelList.size());
+
+		// If null may need to throw error. For now:
+		if (T.model == NULL) T.model = netlist.modelList[0]; // default model
+
+		// Length
+		token = strtok(NULL, delim);
+		val = atof(token + 2); // skip L=
+
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		T.l = numPrefix(val, type);
+
+		// Width
+		token = strtok(NULL, delim);
+		val = atof(token + 2); // skip W=
+
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		T.w = numPrefix(val, type);
+
+		netlist.mosList.push_back(T);
+	}
 
 	return 0;
 }
@@ -203,6 +240,19 @@ int findNode(vector<char*> &nodeList, char* name, int n) {
 	}
 }
 
+Model* findModel(vector<Model*> &modelList, char* name, int n) {
+	int i = 0;
+	for (i = 0; i < n; i++) {
+		if (strcmp(name, modelList[i]->name) == 0) break;
+	}
+	if (i < n) {
+		return modelList[i];
+	}
+	else {
+		return NULL;
+	}
+}
+
 float numPrefix(float num, char prefix) {
 	// Applies number affix to parsed value
 	// e.g. 1k = 1000
@@ -214,6 +264,7 @@ float numPrefix(float num, char prefix) {
 			return num * 1e-2;
 		case 'm':
 			return num * 1e-3;
+		case 'U':
 		case 'u':
 			return num * 1e-6;
 		case 'n':

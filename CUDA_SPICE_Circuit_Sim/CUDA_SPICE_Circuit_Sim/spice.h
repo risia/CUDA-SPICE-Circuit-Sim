@@ -25,10 +25,12 @@ https://www.seas.upenn.edu/~jan/spice/spice.overview.html
 */
 
 struct Model {
+	char* name = "N";
+	char type = 'n';
+
 	float u0 = 540.0f;
 	float tox = 1.41e-8;
 	float vt0 = 0.7f;
-	char type = 'n';
 };
 
 struct Resistor {
@@ -58,6 +60,7 @@ struct Transistor {
 	int s; // source
 	int b; // bulk
 	Model* model;
+	char* name;
 };
 
 struct Vdc {
@@ -90,10 +93,13 @@ struct Netlist {
 	vector<Vdc> vdcList;
 	vector<Idc> idcList;
 	vector<VCCS> vccsList;
+	vector<Transistor> mosList;
+	vector<Model*> modelList;
 	vector<char*> netNames;
 };
 
 int parseNetlist(char* filepath, Netlist &netlist);
 int parseElement(char* line, Netlist& netlist);
 int findNode(vector<char*> &nodeList, char* name, int n);
+Model* findModel(vector<Model*> &modelList, char* name, int n);
 float numPrefix(float num, char prefix);
