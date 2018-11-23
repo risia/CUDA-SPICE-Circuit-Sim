@@ -7,3 +7,4 @@
 #include "kcl.h"
 #include "linSolver.h"
 #include "cuda_LinSolver.h"
+#include "transistor.h"

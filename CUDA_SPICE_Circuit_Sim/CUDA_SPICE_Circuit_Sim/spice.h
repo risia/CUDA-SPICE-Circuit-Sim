@@ -27,7 +27,7 @@ https://www.seas.upenn.edu/~jan/spice/spice.overview.html
 struct Model {
 	float u0 = 540.0f;
 	float tox = 1.41e-8;
-	float vt0 = 0.7;
+	float vt0 = 0.7f;
 	char type = 'n';
 };
 
@@ -96,3 +96,4 @@ struct Netlist {
 int parseNetlist(char* filepath, Netlist &netlist);
 int parseElement(char* line, Netlist& netlist);
 int findNode(vector<char*> &nodeList, char* name, int n);
+float numPrefix(float num, char prefix);

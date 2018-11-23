@@ -56,6 +56,8 @@ int parseElement(char* line, Netlist& netlist) {
 	char* token;
 	char* delim = " ";
 
+	float val;
+
 	// parse resistor
 	if (type == 'R') {
 		Resistor r;
@@ -75,8 +77,11 @@ int parseElement(char* line, Netlist& netlist) {
 
 		// value
 		token = strtok(NULL, delim);
+		val = atof(token);
 
-		r.val = atof(token);
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		r.val = numPrefix(val, type);
 
 		netlist.rList.push_back(r);
 	}
@@ -102,8 +107,12 @@ int parseElement(char* line, Netlist& netlist) {
 		token = strtok(NULL, delim);
 		if (strcmp(token, "DC") == 0) {
 			token = strtok(NULL, delim);
-			v.val = atof(token);
+			val = atof(token);
 		}
+
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		v.val = numPrefix(val, type);
 
 		netlist.vdcList.push_back(v);
 	}
@@ -129,8 +138,12 @@ int parseElement(char* line, Netlist& netlist) {
 		token = strtok(NULL, delim);
 		if (strcmp(token, "DC") == 0) {
 			token = strtok(NULL, delim);
-			i.val = atof(token);
+			val = atof(token);
 		}
+
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		i.val = numPrefix(val, type);
 
 		netlist.idcList.push_back(i);
 	}
@@ -161,7 +174,11 @@ int parseElement(char* line, Netlist& netlist) {
 
 		// gain
 		token = strtok(NULL, delim);
-		iv.g = atof(token);
+		val = atof(token);
+
+		// apply prefix multiplier
+		type = token[strlen(token) - 1]; // reusing variable
+		iv.g = numPrefix(val, type);
 
 		netlist.vccsList.push_back(iv);
 
@@ -183,5 +200,55 @@ int findNode(vector<char*> &nodeList, char* name, int n) {
 		strcpy(new_name, name);
 		nodeList.push_back(new_name);
 		return n;
+	}
+}
+
+float numPrefix(float num, char prefix) {
+	// Applies number affix to parsed value
+	// e.g. 1k = 1000
+	switch (prefix) {
+		//negative exponents
+		case 'd':
+			return num * 1e-1;
+		case 'c':
+			return num * 1e-2;
+		case 'm':
+			return num * 1e-3;
+		case 'u':
+			return num * 1e-6;
+		case 'n':
+			return num * 1e-9;
+		case 'p':
+			return num * 1e-12;
+		case 'f':
+			return num * 1e-15;
+		case 'a':
+			return num * 1e-18;
+		case 'z':
+			return num * 1e-21;
+		case 'y':
+			return num * 1e-24;
+		// positive exponents
+		case 'h':
+			return num * 1e2;
+		case 'k':
+			return num * 1e3;
+		case 'M':
+			return num * 1e6;
+		case 'G':
+			return num * 1e9;
+		case 'T':
+			return num * 1e12;
+		case 'P':
+			return num * 1e15;
+		case 'E':
+			return num * 1e18;
+		case 'Z':
+			return num * 1e21;
+		case 'Y':
+			return num * 1e24;
+		// default is do nothing, return original value
+		default:
+			return num;
 	}
 }

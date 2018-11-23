@@ -3,7 +3,7 @@
 int main() {
 	Netlist netlist;
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Test1.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/T_test.spi";
 	parseNetlist(file, netlist);
 
 	Resistor* rList = netlist.rList.data();
@@ -92,6 +92,23 @@ int main() {
 	cout << "\nSolution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+
+	// Testing MOSFET current calc
+	/*
+	Transistor T;
+	T.l = 1.0f;
+	T.w = 1.0f;
+	T.g = 2;
+	T.s = 0;
+	T.d = 2;
+
+	Model M;
+
+	T.model = &M;
+
+	float c = calcId(&T, vMat);
+	printf("T current calc test: %f uA\n", c * 1000000.0f);
+	*/
 
 	//system("pause");
 	//free(rList);
