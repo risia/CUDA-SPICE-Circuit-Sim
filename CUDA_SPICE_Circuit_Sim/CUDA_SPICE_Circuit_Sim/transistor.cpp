@@ -3,7 +3,8 @@
 // WIP
 
 // guessed voltage matrix vMat as input
-// keep solved values separate.
+// keep solved values separate?
+// calcId calculates current of a transistor for given v matrix for testing
 float calcId(Transistor* T, float* vMat) {
 	// Load guessed node voltages
 	float Vg = 0.0f;
@@ -30,6 +31,24 @@ float calcId(Transistor* T, float* vMat) {
 	}
 }
 
+// calc voltage "error" on CPU
+// Use ORIGINAL gMat and iMat, before solving, 
+// then modified w/ new transistor currents from solution
+float calcError(float** gMat, float* iMat, float* vMat, int row, int n) {
+	/*
+		Error = f(V) / f'(V);
+	*/
+
+	float f = iMat[row];
+	for (int i = 0; i < n; i++) {
+		f -= gMat[row][i] * vMat[i];
+	}
+
+	float df = gMat[row][row];
+
+	return f / df;
+}
+
 void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess) {
 	// Load guessed node voltages
 	float Vg = 0.0f;
@@ -37,7 +56,7 @@ void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess) {
 	float Vs = 0.0f;
 	if (T->s > 0) Vs = vGuess[T->s - 1];
 	float Vd = 0.0f;
-	if (T->d > 0) Vs = vGuess[T->d - 1];
+	if (T->d > 0) Vd = vGuess[T->d - 1];
 
 	// current
 	float c;

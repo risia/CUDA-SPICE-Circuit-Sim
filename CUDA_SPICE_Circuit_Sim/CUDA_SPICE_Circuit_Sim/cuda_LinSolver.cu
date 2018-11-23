@@ -20,7 +20,7 @@ __global__ void kernMatReduce(int n, float* gMat, float* iMat, int k) {
 
 	int idx = i * n;
 
-	float ratio = gMat[idx + k]/gMat[ref_idx + k];
+	float ratio = gMat[idx + k] / gMat[ref_idx + k];
 
 	if (j == n) {
 		iMat[i] -= ratio * iMat[k];
@@ -51,6 +51,9 @@ __global__ void kernMatSolve(int n, float* gMat, float* iMat, float* vMat) {
 	// matrix always square
 	if (i >= n) return;
 	if (vMat[i] != 0.0f) return;
+
+	// error?
+	if (gMat[i * n + i] == 0) return;
 
 	float v = iMat[i] / gMat[i * n + i];
 	vMat[i] = v;

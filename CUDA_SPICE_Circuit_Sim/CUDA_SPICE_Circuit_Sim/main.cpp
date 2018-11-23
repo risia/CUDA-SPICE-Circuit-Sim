@@ -1,5 +1,8 @@
 #include "main.h"
 
+#define TOL 1e-6
+#define MAX_FLOAT 	3.402823466e38
+
 int main() {
 	Netlist netlist;
 
@@ -103,22 +106,70 @@ int main() {
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
-	// Testing MOSFET current calc
 	/*
-	Transistor T;
-	T.l = 1.0f;
-	T.w = 1.0f;
-	T.g = 2;
-	T.s = 0;
-	T.d = 2;
-
-	Model M;
-
-	T.model = &M;
-
-	float c = calcId(&T, vMat);
-	printf("T current calc test: %f uA\n", c * 1000000.0f);
+	Testing MOSFET current calc
 	*/
+	
+	Transistor T = mosList[0];
+	float c = 0;
+	float e = MAX_FLOAT;
+	float v = 0;
+
+	int n = 0;
+	while (e > TOL) {
+		v = vMat[T.d - 1];
+		c = calcId(&T, vMat);
+
+
+		freeMat2D(gMat, num_nodes);
+		free(iMat);
+		free(vMat);
+
+		// Reset Conductance Matrix
+		gMat = mat2D(num_nodes, num_nodes);
+
+		// Reset Current Matrix
+		iMat = mat1D(num_nodes);
+
+		// Reset VOltage Matrix
+		vMat = mat1D(num_nodes);
+
+		// Populate G matrix from Resistor Elements
+		for (int i = 0; i < num_r; i++) {
+			R_toMat(rList + i, gMat);
+		}
+
+		// IDC Sources populate I matrix
+		for (int i = 0; i < num_idc; i++) {
+			Idc_toMat(idcList + i, iMat);
+		}
+		for (int i = 0; i < num_vccs; i++) {
+			VCCS_toMat(vccsList + i, gMat);
+		}
+
+		// VDC Source populates G and I matrices
+		for (int i = 0; i < num_vdc; i++) {
+			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+		}
+
+		iMat[T.d - 1] -= c;
+
+		gpuMatSolve(num_nodes, gMat, iMat, vMat);
+
+
+		e = fabs(v - vMat[T.d - 1]);
+		n++;
+	}
+
+
+
+	cout << "\nSolution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
+	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
+	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+
+
+	printf("T current calc test: %f uA\n", c * 1e6);
+	
 
 	//system("pause");
 	//free(rList);

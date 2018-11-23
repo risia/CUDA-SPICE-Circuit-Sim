@@ -7,14 +7,14 @@ void R_toMat(Resistor* R, float** gMat) {
 	float val = R->val;
 
 	if (a >= 0) {
-		gMat[a][a] += 1 / val;
+		gMat[a][a] += 1.0f / val;
 	}
 	if (b >= 0) {
-		gMat[b][b] += 1 / val;
+		gMat[b][b] += 1.0f / val;
 	}
 	if (a >= 0 && b >= 0) {
-		gMat[a][b] -= 1 / val;
-		gMat[b][a] -= 1 / val;
+		gMat[a][b] -= 1.0f / val;
+		gMat[b][a] -= 1.0f / val;
 	}
 }
 
