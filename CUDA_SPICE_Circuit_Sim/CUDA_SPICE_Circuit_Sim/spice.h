@@ -29,8 +29,9 @@ struct Model {
 	char type = 'n';
 
 	float u0 = 540.0f;
-	float tox = 1.41e-8;
+	float tox = 14.1e-9;
 	float vt0 = 0.7f;
+	float pclm = 0.6171774f; // CLM parameter
 };
 
 struct Resistor {

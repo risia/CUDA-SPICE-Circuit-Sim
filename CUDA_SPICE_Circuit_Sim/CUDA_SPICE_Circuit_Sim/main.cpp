@@ -3,7 +3,7 @@
 int main() {
 	Netlist netlist;
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/T_test.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/T_test3.spi";
 	parseNetlist(file, netlist);
 
 	Resistor* rList = netlist.rList.data();
@@ -104,11 +104,8 @@ int main() {
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	/*
-	Testing MOSFET current calc
+	Transistor convergence loop
 	*/
-	
-	Transistor T = mosList[0];
-	float c = 0;
 	float e = MAX_FLOAT;
 	float v;
 
@@ -116,7 +113,7 @@ int main() {
 
 	int n = 0;
 	
-	while (e > TOL && n < 100) {
+	while (e > TOL && n < 1000) {
 		// copy prev. guess
 		matCpy(vGuess, vMat, num_nodes);
 
@@ -148,7 +145,10 @@ int main() {
 		}
 
 		// Apply Transistor
-		MOS_toMat(&T, gMat, iMat, vGuess, num_nodes);
+		for (int i = 0; i < num_mos; i++) {
+			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+		}
+		
 
 		// Attempt solution
 		gpuMatSolve(num_nodes, gMat, iMat, vMat);
