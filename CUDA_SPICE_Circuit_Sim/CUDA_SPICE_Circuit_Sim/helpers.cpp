@@ -27,22 +27,43 @@ void freeMat2D(float** mat, int n) {
 }
 
 string  mat2DToStr(float** mat, int m, int n) {
-	string matStr = "";
+	std::ostringstream out;
+	out.precision(6);
 	for (int i = 0; i < m; i++) {
-		matStr += string("[ ");
+		out << "[ ";
 		for (int j = 0; j < n; j++) {
-			matStr += to_string(mat[i][j]) + string(" ");
+			out << std::scientific << mat[i][j] << " ";
 		}
-		matStr += ("]\n");
+		out << "]\n";
 	}
-	return matStr;
+	return out.str();
 }
 
 string mat1DToStr(float* mat, int n) {
-	string matStr = "[ ";
+	std::ostringstream out;
+	out.precision(6);
+	out << "[ ";
 	for (int i = 0; i < n; i++) {
-		matStr += to_string(mat[i]) + string(" ");
+		out << std::scientific << mat[i] << " ";
 	}
-	matStr += ("]\n");
-	return matStr;
+	out << "]\n";
+
+	return out.str();
+}
+
+void matCpy(float* dst, float* src, int n) {
+	for (int i = 0; i < n; i++) {
+		dst[i] = src[i];
+	}
+}
+
+float maxDiff(float* mat1, float* mat2, int n) {
+	float max = 0.0f;
+	float diff;
+	for (int i = 0; i < n; i++) {
+		diff = fabs(mat1[i] - mat2[i]);
+		if (diff > max) max = diff;
+	}
+
+	return max;
 }

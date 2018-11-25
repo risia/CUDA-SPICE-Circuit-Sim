@@ -1,8 +1,5 @@
 #include "main.h"
 
-#define TOL 1e-6
-#define MAX_FLOAT 	3.402823466e38
-
 int main() {
 	Netlist netlist;
 
@@ -113,73 +110,68 @@ int main() {
 	Transistor T = mosList[0];
 	float c = 0;
 	float e = MAX_FLOAT;
-	float v = 0;
-	float correction;
+	float v;
+
+	float* vGuess = mat1D(num_nodes);
 
 	int n = 0;
-	while (e > TOL) {
-		// copy old guess
-		v = vMat[T.d - 1];
-
-		// calculate guessed current
-		c = calcId(&T, vMat);
+	
+	while (e > TOL && n < 100) {
+		// copy prev. guess
+		matCpy(vGuess, vMat, num_nodes);
 
 		// Reset matrices
-		freeMat2D(gMat, num_nodes);
-		free(iMat);
-		free(vMat);
-
 		// Reset Conductance Matrix
+		freeMat2D(gMat, num_nodes);
 		gMat = mat2D(num_nodes, num_nodes);
 
 		// Reset Current Matrix
+		free(iMat);
 		iMat = mat1D(num_nodes);
 
-		// Reset VOltage Matrix
+		// Reset Voltage Matrix
+		free(vMat);
 		vMat = mat1D(num_nodes);
 
-		// Populate G matrix from Resistor Elements
+		// Apply passive elements
 		for (int i = 0; i < num_r; i++) {
 			R_toMat(rList + i, gMat);
 		}
-
-		// IDC Sources populate I matrix
 		for (int i = 0; i < num_idc; i++) {
 			Idc_toMat(idcList + i, iMat);
 		}
 		for (int i = 0; i < num_vccs; i++) {
 			VCCS_toMat(vccsList + i, gMat);
 		}
-
-		// VDC Source populates G and I matrices
 		for (int i = 0; i < num_vdc; i++) {
 			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
 
+		// Apply Transistor
+		MOS_toMat(&T, gMat, iMat, vGuess, num_nodes);
+
 		// Attempt solution
 		gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
-		// Calculate error
-		e = fabs(v - vMat[T.d - 1]);
+		// Measure error beteen old and new guess
+		e = maxDiff(vGuess, vMat, num_nodes);
 
 		// Iteration counter for testing
 		n++;
 
+		// print matrices for testing
 		printf("\nSolution %i:\n\n", n);
 		cout << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 		cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 		cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
-		printf("\nError: %f\n\n", e);
+		printf("\nError: %e\n\n", e);
 	}
-
+	
 
 
 	cout << "\nSolution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
-
-
-	printf("T current calc test: %f uA\n", c * 1e6);
 	
 
 	//system("pause");
@@ -189,6 +181,7 @@ int main() {
 	freeMat2D(gMat, num_nodes);
 	free(iMat);
 	free(vMat);
+	//free(v);
 	return 0;
 
 

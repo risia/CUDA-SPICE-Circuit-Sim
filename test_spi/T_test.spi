@@ -13,5 +13,5 @@
 Mnmos@0 net@0 net@2 gnd gnd N L=0.044U W=0.044U
 Rres@0 net@0 net@5 100k
 VVDC@0 net@2 gnd DC 1V AC 0V 0
-VVDC@1 net@5 gnd DC 0.5V AC 0V 0
+VVDC@1 net@5 gnd DC 0.8V AC 0V 0
 .END

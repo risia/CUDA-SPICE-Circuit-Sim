@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <iostream>
+#include <iomanip>
 #include "helpers.h"
 #include "test_circuit.h"
 #include "kcl.h"
