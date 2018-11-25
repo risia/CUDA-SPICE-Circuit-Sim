@@ -21,13 +21,15 @@ float calcId(Transistor* T, float* vMat) {
 
 	float k = (T->w / T->l) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
 
+	float Vov = Vg - Vs - vth;
+
 	// saturation region
-	if (Vd > (Vg - vth)) {
-		return (0.5f * k * (Vg - vth) * (Vg - vth));
+	if (Vd - Vs > Vov) {
+		return (0.5f * k * Vov * Vov);
 	}
 	// "linear" region
 	else {
-		return (k * ((Vg - vth) * Vd) + (0.5 * Vd * Vd));
+		return k * ((Vov * (Vd - Vs)) + (0.5 * (Vd - Vs) * (Vd - Vs)));
 	}
 }
 
@@ -49,32 +51,33 @@ float calcError(float** gMat, float* iMat, float* vMat, int row, int n) {
 	return f / df;
 }
 
-void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess) {
+void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vMat) {
+	float Id;
+
 	// Load guessed node voltages
 	float Vg = 0.0f;
-	if (T->g > 0) Vg = vGuess[T->g - 1];
+	if (T->g > 0) Vg = vMat[T->g - 1];
 	float Vs = 0.0f;
-	if (T->s > 0) Vs = vGuess[T->s - 1];
+	if (T->s > 0) Vs = vMat[T->s - 1];
 	float Vd = 0.0f;
-	if (T->d > 0) Vd = vGuess[T->d - 1];
-
-	// current
-	float c;
+	if (T->d > 0) Vd = vMat[T->d - 1];
 
 	float vth = T->model->vt0;
-	// subthreshold
-	if (Vg - Vs <= vth && T->model->type == 'n') c = 0.0f;
-	if (Vg - Vs >= vth && T->model->type == 'p') c = 0.0f;
+	// subthreshold, ignoring for now
+	if (Vg - Vs <= vth && T->model->type == 'n') Id = 0.0f;
+	if (Vg - Vs >= vth && T->model->type == 'p') Id = 0.0f;
 
 	float k = (T->w / T->l) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
 
+	float Vov = Vg - Vs - vth;
+
 	// saturation region
-	if (Vd > (Vg - vth)) {
-		c = (0.5f * k * (Vg - vth) * (Vg - vth));
+	if (Vd - Vs > Vov) {
+		Id = (0.5f * k * Vov * Vov);
 	}
 	// "linear" region
 	else {
-		c = (k * ((Vg - vth) * Vd) + (0.5 * Vd * Vd));
+		Id = k * ((Vov * (Vd - Vs)) + (0.5 * (Vd - Vs) * (Vd - Vs)));
 	}
 
 	// transconductance

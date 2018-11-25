@@ -102,7 +102,7 @@ int main() {
 	gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
 
-	cout << "\nSolution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
+	cout << "\nSolution 0:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
@@ -114,13 +114,17 @@ int main() {
 	float c = 0;
 	float e = MAX_FLOAT;
 	float v = 0;
+	float correction;
 
 	int n = 0;
 	while (e > TOL) {
+		// copy old guess
 		v = vMat[T.d - 1];
+
+		// calculate guessed current
 		c = calcId(&T, vMat);
 
-
+		// Reset matrices
 		freeMat2D(gMat, num_nodes);
 		free(iMat);
 		free(vMat);
@@ -152,13 +156,20 @@ int main() {
 			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
 
-		iMat[T.d - 1] -= c;
-
+		// Attempt solution
 		gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
-
+		// Calculate error
 		e = fabs(v - vMat[T.d - 1]);
+
+		// Iteration counter for testing
 		n++;
+
+		printf("\nSolution %i:\n\n", n);
+		cout << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
+		cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
+		cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+		printf("\nError: %f\n\n", e);
 	}
 
 
