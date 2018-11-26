@@ -120,3 +120,34 @@ void VCCS_toMat(VCCS* I, float** gMat) {
 		}
 	}
 }
+
+
+void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat) {
+	Resistor* rList = netlist.rList.data();
+	Vdc* vdcList = netlist.vdcList.data();
+	Idc* idcList = netlist.idcList.data();
+	VCCS* vccsList = netlist.vccsList.data();
+
+	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
+	int num_r = netlist.rList.size();
+	int num_vdc = netlist.vdcList.size();
+	int num_idc = netlist.idcList.size();
+	int num_vccs = netlist.vccsList.size();
+
+	// Populate G matrix from Resistor Elements
+	for (int i = 0; i < num_r; i++) {
+		R_toMat(rList + i, gMat);
+	}
+	// IDC Sources populate I matrix
+	for (int i = 0; i < num_idc; i++) {
+		Idc_toMat(idcList + i, iMat);
+	}
+	for (int i = 0; i < num_vccs; i++) {
+		VCCS_toMat(vccsList + i, gMat);
+	}
+	// VDC Source populates G and I matrices
+	for (int i = 0; i < num_vdc; i++) {
+		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+	}
+
+}

@@ -57,6 +57,20 @@ void matCpy(float* dst, float* src, int n) {
 	}
 }
 
+void resetMat1D(float* mat, int n) {
+	for (int i = 0; i < n; i++) {
+		mat[i] = 0.0f;
+	}
+}
+void resetMat2D(float** mat, int m, int n) {
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			mat[i][j] = 0.0f;
+		}
+	}
+}
+
+
 float maxDiff(float* mat1, float* mat2, int n) {
 	float max = 0.0f;
 	float diff;

@@ -3,6 +3,7 @@
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="cuda_LinSolver.cu" />
+    <CudaCompile Include="cuda_setup.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="parse">
@@ -19,8 +20,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="kcl.cpp" />
     <ClCompile Include="helpers.cpp" />
-    <ClCompile Include="cuda_setup.cu" />
     <ClCompile Include="transistor.cpp" />
+    <ClCompile Include="sim.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spice.h">
@@ -36,5 +37,6 @@
     <ClInclude Include="cuda_setup.h" />
     <ClInclude Include="cuda_LinSolver.h" />
     <ClInclude Include="transistor.h" />
+    <ClInclude Include="sim.h" />
   </ItemGroup>
 </Project>
