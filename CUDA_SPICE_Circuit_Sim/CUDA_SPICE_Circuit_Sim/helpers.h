@@ -22,3 +22,4 @@ void resetMat1D(float* mat, int n);
 void resetMat2D(float** mat, int m, int n);
 
 float maxDiff(float* mat1, float* mat2, int n);
+bool matDiffCmp(float* mat1, float* mat2, int n, float tol);

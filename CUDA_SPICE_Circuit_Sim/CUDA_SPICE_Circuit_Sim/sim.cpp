@@ -39,7 +39,8 @@ void op(Netlist netlist) {
 	*/
 
 	// Max error between current and previous guess
-	float e = MAX_FLOAT;
+	bool isConverged = false;
+	if (num_mos == 0) isConverged = true;
 	// Store prev. guess for calc. and comparison
 	float* vGuess = mat1D(num_nodes);
 	// Loop counter
@@ -47,7 +48,7 @@ void op(Netlist netlist) {
 
 	// Limit n to 1000 to prevent inf loop
 	// in case of no convergence/bad circuit
-	while (e > TOL && n < 1000 && num_mos > 0) {
+	while (!isConverged && n < 1000 && num_mos > 0) {
 		// copy prev. guess
 		matCpy(vGuess, vMat, num_nodes);
 
@@ -64,7 +65,7 @@ void op(Netlist netlist) {
 			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
 		}
 		
-		// Recalc VDC currents?
+		// Recalc VDC currents
 		for (int i = 0; i < num_vdc; i++) {
 			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
@@ -75,7 +76,7 @@ void op(Netlist netlist) {
 		gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
 		// Measure error beteen old and new guess
-		e = maxDiff(vGuess, vMat, num_nodes);
+		isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
 
 		// Iteration counter for testing
 		n++;
@@ -85,12 +86,14 @@ void op(Netlist netlist) {
 		cout << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 		cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 		cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
-		printf("\nError: %e\n\n", e);
 	}
 
 	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+
+	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
+
 
 
 	freeMat2D(gMat, num_nodes);

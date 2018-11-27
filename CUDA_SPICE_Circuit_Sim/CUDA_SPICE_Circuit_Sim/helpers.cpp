@@ -70,7 +70,7 @@ void resetMat2D(float** mat, int m, int n) {
 	}
 }
 
-
+// find max diff between two arrays
 float maxDiff(float* mat1, float* mat2, int n) {
 	float max = 0.0f;
 	float diff;
@@ -80,4 +80,14 @@ float maxDiff(float* mat1, float* mat2, int n) {
 	}
 
 	return max;
+}
+
+// Compare diff to tolerance
+bool matDiffCmp(float* mat1, float* mat2, int n, float tol) {
+	float diff;
+	for (int i = 0; i < n; i++) {
+		diff = fabs(mat1[i] - mat2[i]);
+		if (diff > tol) return false;
+	}
+	return true;
 }
