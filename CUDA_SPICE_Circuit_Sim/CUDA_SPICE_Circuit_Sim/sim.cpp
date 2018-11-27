@@ -2,8 +2,8 @@
 
 void op(Netlist netlist) {
 	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
-	int num_mos = netlist.mosList.size();
-	Transistor* mosList = netlist.mosList.data();
+	int num_mos = netlist.active_elem.size();
+	Element* mosList = netlist.active_elem.data();
 
 	// Conductance Matrix
 	float** gMat = mat2D(num_nodes, num_nodes);
@@ -84,4 +84,34 @@ void op(Netlist netlist) {
 	free(iMat);
 	free(vMat);
 	free(vGuess);
+}
+
+void dcSweep(Netlist netlist, char* name, float start, float stop, float step) {
+	// variable setup
+	// store original parameter value
+	// in case we need to do multiple simulations
+	float original_val;
+	char type = 0;
+	int index = 0;
+
+	int num_nodes = netlist.netNames.size();
+
+	// Setup matrices
+	float** gMat = mat2D(num_nodes, num_nodes);
+	float* iMat = mat1D(num_nodes);
+	float* vMat = mat1D(num_nodes);
+
+	// find element named & setup matrices
+	linNetlistToMatFindElem(netlist, gMat, iMat, vMat, name, type, index);
+
+
+	// Make copy of original value
+	// Set to start
+
+	// solve
+
+	// loop steps
+
+	// store solutions,
+	// allow printing when finished or save to file
 }

@@ -89,14 +89,25 @@ struct VCCS {
 	int vn;
 };
 
+// Passive Element
+struct Element {
+	char type;
+	char* name;
+	vector<float> params;
+	vector<int> nodes;
+	Model* model = NULL;
+};
+
 struct Netlist {
-	vector<Resistor> rList;
-	vector<Vdc> vdcList;
-	vector<Idc> idcList;
-	vector<VCCS> vccsList;
-	vector<Transistor> mosList;
 	vector<Model*> modelList;
 	vector<char*> netNames;
+
+	// Passives
+	vector<Element> elements;
+	// Voltage sources (need to be applied last)
+	vector<Element> vdcList;
+	// Transistors
+	vector<Element> active_elem;
 };
 
 int parseNetlist(char* filepath, Netlist &netlist);

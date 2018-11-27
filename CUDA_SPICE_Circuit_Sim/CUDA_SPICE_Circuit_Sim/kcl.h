@@ -8,12 +8,17 @@ Using Kirchoff's Current Law
 
 */
 
-void R_toMat(Resistor* R, float** gMat);
+void R_toMat(Element* R, float** gMat);
 
-int Vdc_toMat(Vdc* V, float** gMat, float* iMat, float* vMat, int num_nodes);
+int Vdc_toMat(Element* V, float** gMat, float* iMat, float* vMat, int num_nodes);
 
-void Idc_toMat(Idc* I, float* iMat);
+void Idc_toMat(Element* I, float* iMat);
 
-void VCCS_toMat(VCCS* I, float** gMat);
+void VCCS_toMat(Element* I, float** gMat);
 
+// For op matrix gen
 void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat);
+
+// For dc sweep need to find swept element
+// Since we're looping through anyway, easiest here
+void  linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name, char &type, int &index);

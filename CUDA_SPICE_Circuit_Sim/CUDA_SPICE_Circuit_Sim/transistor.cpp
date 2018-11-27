@@ -5,12 +5,12 @@
 // guessed voltage matrix vMat as input
 // keep solved values separate?
 // calcId calculates current of a transistor for given v matrix for testing
-float calcId(Transistor* T, float* vMat) {
+float calcId(Element* T, float* vMat) {
 	float Id;
 
-	int n_g = T->g;
-	int n_d = T->d;
-	int n_s = T->s;
+	int n_d = T->nodes[0];
+	int n_g = T->nodes[1];
+	int n_s = T->nodes[2];
 
 	// Load guessed node voltages
 	float Vg = 0.0f;
@@ -23,11 +23,11 @@ float calcId(Transistor* T, float* vMat) {
 	// switch drain and source if necessary
 	// right now assuming symmetric transistors
 	if (Vs > Vd) {
-		n_s = T->d;
+		n_s = T->nodes[0];
 		Vs = 0.0f;
 		if (n_s > 0) Vs = vMat[n_s - 1];
 
-		n_d = T->s;
+		n_d = T->nodes[2];
 		Vd = 0.0f;
 		if (n_d > 0) Vd = vMat[n_d - 1];
 	}
@@ -41,7 +41,7 @@ float calcId(Transistor* T, float* vMat) {
 		Id = 0.0f;
 	}
 
-	float k = (T->w / T->l) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
+	float k = (T->params[1] / T->params[0]) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
 
 	float Vov = Vg - Vs - vth;
 
@@ -59,14 +59,14 @@ float calcId(Transistor* T, float* vMat) {
 
 // Vmat should be most recent guesses, gMat and iMat restored to passive elements
 // currently considering single transistor system
-void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess, int n) {
+void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 	//float Id;
 	float I;
 	float g;
 
-	int n_g = T->g - 1;
-	int n_d = T->d - 1;
-	int n_s = T->s - 1;
+	int n_d = T->nodes[0] - 1;
+	int n_g = T->nodes[1] - 1;
+	int n_s = T->nodes[2] - 1;
 
 	// Load guessed node voltages
 	float Vg = 0.0f;
@@ -79,11 +79,11 @@ void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess, int n) {
 	// switch drain and source if necessary
 	// right now assuming symmetric transistors
 	if (Vs > Vd) {
-		n_s = T->d - 1;
+		n_s = T->nodes[0] - 1;
 		Vs = 0.0f;
 		if (n_s >= 0) Vs = vGuess[n_s];
 
-		n_d = T->s - 1;
+		n_d = T->nodes[2] - 1;
 		Vd = 0.0f;
 		if (n_d >= 0) Vd = vGuess[n_d];
 	}
@@ -97,7 +97,7 @@ void MOS_toMat(Transistor* T, float** gMat, float* iMat, float* vGuess, int n) {
 		return;
 	}
 
-	float k = (T->w / T->l) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
+	float k = (T->params[1] / T->params[0]) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
 
 	float Vov = Vg - Vs - vth;
 
