@@ -3,7 +3,7 @@
 int main() {
 	Netlist netlist;
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/T_test5.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/T_test6.spi";
 	parseNetlist(file, netlist);
 
 	op(netlist);

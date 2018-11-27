@@ -61,26 +61,21 @@ int Vdc_toMat(Element* V, float** gMat, float* iMat, float* vMat, int num_nodes)
 
 	// neither grounded
 	else {
-
-		self = gMat[n_n][n_n];
-		c = val * self;
-		float temp;
-
 		for (int i = 0; i < num_nodes; i++) {
-			temp = gMat[n_p][i];
-			gMat[n_p][i] += gMat[n_n][i];
-			gMat[n_n][i] += temp;
+			gMat[n_n][i] += gMat[n_p][i];
+			gMat[n_p][i] = 0.0f;
 		}
 
-		gMat[n_p][n_p] += self;
-		gMat[n_p][n_n] -= self;
+		iMat[n_n] += iMat[n_p];
 
-		iMat[n_p] = c;
+		iMat[n_p] = val;
+		gMat[n_p][n_n] = -1;
+		gMat[n_p][n_p] = 1;
 
-		if (vMat[n_p] != 0) {
+		if (vMat[n_p] != 0.0f) {
 			vMat[n_n] = vMat[n_p] - val;
 		}
-		if (vMat[n_n] != 0) {
+		if (vMat[n_n] != 0.0f) {
 			vMat[n_p] = vMat[n_n] + val;
 		}
 	}
@@ -143,10 +138,12 @@ void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat) {
 		else if (type == 'G') VCCS_toMat(passives + i, gMat);
 
 	}
+	/*
 	// VDC Source populates G and I matrices
 	for (int i = 0; i < num_vdc; i++) {
 		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 	}
+	*/
 
 }
 

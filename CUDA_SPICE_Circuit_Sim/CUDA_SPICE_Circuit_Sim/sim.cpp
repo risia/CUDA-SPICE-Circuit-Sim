@@ -19,6 +19,10 @@ void op(Netlist netlist) {
 
 	linNetlistToMat(netlist, gMat, iMat, vMat);
 
+	for (int i = 0; i < num_vdc; i++) {
+		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+	}
+
 	cout << "Passive G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
@@ -41,9 +45,9 @@ void op(Netlist netlist) {
 	// Loop counter
 	int n = 0;
 
-	// Limit n to 100 to prevent inf loop
+	// Limit n to 1000 to prevent inf loop
 	// in case of no convergence/bad circuit
-	while (e > TOL && n < 100 && num_mos > 0) {
+	while (e > TOL && n < 1000 && num_mos > 0) {
 		// copy prev. guess
 		matCpy(vGuess, vMat, num_nodes);
 
@@ -59,10 +63,12 @@ void op(Netlist netlist) {
 		for (int i = 0; i < num_mos; i++) {
 			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
 		}
+		
 		// Recalc VDC currents?
 		for (int i = 0; i < num_vdc; i++) {
 			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
+		
 
 
 		// Attempt solution
