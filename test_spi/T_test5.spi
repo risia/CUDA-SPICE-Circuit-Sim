@@ -1,0 +1,18 @@
+*** SPICE deck for cell T_test5{sch} from library CUDA_SPICE
+*** Created on Sun Nov 25, 2018 13:17:33
+*** Last revised on Mon Nov 26, 2018 23:43:40
+*** Written on Mon Nov 26, 2018 23:43:58 by Electric VLSI Design System, version 9.07
+*** Layout tech: mocmos, foundry MOSIS
+*** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
+* Model cards are described in this file:
+.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+
+.global gnd
+
+*** TOP LEVEL CELL: T_test5{sch}
+Mnmos@0 net@5 net@17 net@26 gnd N L=0.044U W=0.044U
+Mnmos@1 net@26 net@17 gnd gnd N L=0.044U W=0.044U
+Rres@0 gnd net@28 100k
+VVDC@0 net@5 net@28 DC 0.8V AC 0V 0
+VVDC@1 net@17 gnd DC 1V AC 0V 0
+.END

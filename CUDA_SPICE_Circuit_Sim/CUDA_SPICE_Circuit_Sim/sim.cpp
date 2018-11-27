@@ -5,6 +5,9 @@ void op(Netlist netlist) {
 	int num_mos = netlist.active_elem.size();
 	Element* mosList = netlist.active_elem.data();
 
+	int num_vdc = netlist.vdcList.size();
+	Element* vdcList = netlist.vdcList.data();
+
 	// Conductance Matrix
 	float** gMat = mat2D(num_nodes, num_nodes);
 
@@ -38,9 +41,9 @@ void op(Netlist netlist) {
 	// Loop counter
 	int n = 0;
 
-	// Limit n to 1000 to prevent inf loop
+	// Limit n to 100 to prevent inf loop
 	// in case of no convergence/bad circuit
-	while (e > TOL && n < 1000) {
+	while (e > TOL && n < 100 && num_mos > 0) {
 		// copy prev. guess
 		matCpy(vGuess, vMat, num_nodes);
 
@@ -55,6 +58,10 @@ void op(Netlist netlist) {
 		// Apply Transistor
 		for (int i = 0; i < num_mos; i++) {
 			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+		}
+		// Recalc VDC currents?
+		for (int i = 0; i < num_vdc; i++) {
+			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
 
 
