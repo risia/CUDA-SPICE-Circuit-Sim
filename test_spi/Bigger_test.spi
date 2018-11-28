@@ -1,0 +1,23 @@
+*** SPICE deck for cell Bigger_test{sch} from library CUDA_SPICE
+*** Created on Wed Nov 28, 2018 15:57:44
+*** Last revised on Wed Nov 28, 2018 16:08:46
+*** Written on Wed Nov 28, 2018 16:08:53 by Electric VLSI Design System, version 9.07
+*** Layout tech: mocmos, foundry MOSIS
+*** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
+* Model cards are described in this file:
+.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+
+.global gnd vdd
+
+*** TOP LEVEL CELL: Bigger_test{sch}
+Mnmos@0 net@7 net@26 net@13 gnd N L=0.044U W=0.044U
+Mnmos@1 net@7 net@26 net@12 gnd N L=0.044U W=0.044U
+Mnmos@2 net@13 net@26 gnd gnd N L=0.044U W=0.044U
+Mnmos@3 net@12 net@26 gnd gnd N L=0.044U W=0.044U
+Mpmos@0 vdd net@26 net@14 vdd P L=0.044U W=0.044U
+Mpmos@1 vdd net@26 net@15 vdd P L=0.044U W=0.044U
+Mpmos@2 net@14 net@26 net@7 vdd P L=0.044U W=0.044U
+Mpmos@3 net@15 net@26 net@7 vdd P L=0.044U W=0.044U
+VVDC@0 vdd gnd DC 5 AC 0V 0
+VVDC@1 net@26 gnd DC 2.5 AC 0V 0
+.END
