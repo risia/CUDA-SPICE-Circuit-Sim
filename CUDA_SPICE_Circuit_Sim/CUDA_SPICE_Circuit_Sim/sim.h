@@ -6,3 +6,5 @@
 #include "transistor.h"
 
 void op(Netlist netlist);
+
+void cuda_op(Netlist netlist);

@@ -3,7 +3,6 @@
 // WIP
 
 // guessed voltage matrix vMat as input
-// keep solved values separate?
 // calcId calculates current of a transistor for given v matrix for testing
 float calcId(Element* T, float* vMat) {
 	float Id;
@@ -58,7 +57,6 @@ float calcId(Element* T, float* vMat) {
 }
 
 // Vmat should be most recent guesses, gMat and iMat restored to passive elements
-// currently considering single transistor system
 void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 	//float Id;
 	float I;
@@ -78,7 +76,7 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 
 	// switch drain and source if necessary
 	// right now assuming symmetric transistors
-	if (Vs > Vd) {
+	if ((Vs > Vd && T->model->type == 'n') || (Vs < Vd && T->model->type == 'p')) {
 		n_s = T->nodes[0] - 1;
 		Vs = 0.0f;
 		if (n_s >= 0) Vs = vGuess[n_s];
@@ -98,23 +96,35 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 	}
 
 	float k = (T->params[1] / T->params[0]) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
+	
 
 	float Vov = Vg - Vs - vth;
 
+	// Channel Length Modulation Multiplier
+	// Ids = Ids0 * (1 + lambda * Vds)
+	float CLM = T->model->pclm * Vov;
+
+	if (T->model->type == 'p') {
+		k = -k;
+		CLM = -CLM;
+	}
+
 	// saturation region
-	if (Vd - Vs > Vov) {
+	if ((Vd - Vs > Vov && T->model->type == 'n') || (Vd - Vs < Vov && T->model->type == 'p')) {
 		g = 0.5f * k * Vov;
-		I = g * vth;
+		I = g * (1 - CLM) * vth;
 
 		if (n_d >= 0) {
 			iMat[n_d] += I;
-			if (n_g >= 0) gMat[n_d][n_g] += g;
+			gMat[n_d][n_d] += g * CLM;
+			if (n_g >= 0) gMat[n_d][n_g] += g * (1 - CLM);
 			if (n_s >= 0) gMat[n_d][n_s] -= g;
 		}
 		if (n_s >= 0) {
 			iMat[n_s] -= I;
 			gMat[n_s][n_s] += g;
-			if (n_g >= 0) gMat[n_s][n_g] -= g;
+			if (n_g >= 0) gMat[n_s][n_g] -= g * (1 - CLM);
+			if (n_d >= 0) gMat[n_s][n_d] -= g * CLM;
 		}
 	}
 	// "linear" region
@@ -134,18 +144,6 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 			if (n_d >= 0) gMat[n_s][n_d] -= g;
 		}
 	}
-	/*
-	if (n_d > 0) {
-		//iMat[n_d - 1] -= Id;
-		gMat[n_d - 1][n_d - 1] += g;
-		iMat[n_d - 1] += I;
-		if (n_s > 0) gMat[n_d - 1][n_s - 1] -= g;
-	}
-	if (n_s > 0) {
-		//iMat[n_s - 1] += Id;
-		gMat[n_s - 1][n_s - 1] -= g;
-		iMat[n_s - 1] -= I;
-		if (n_d > 0) gMat[n_s - 1][n_d - 1] += g;
-	}
-	*/
+
+
 }

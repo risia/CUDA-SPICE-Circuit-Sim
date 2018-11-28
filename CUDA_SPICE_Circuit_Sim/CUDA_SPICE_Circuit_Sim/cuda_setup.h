@@ -9,6 +9,6 @@
 
 void checkCUDAErrorFn(const char *msg, const char *file, int line);
 
-void setupDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* dev_vMat);
+//void setupDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* dev_vMat);
 void copyDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* vMat, float* dev_vMat);
 void cleanDevMats(float* dev_gMat, float* dev_iMat, float* dev_vMat);

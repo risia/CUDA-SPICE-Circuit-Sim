@@ -156,6 +156,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile Include="kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cuda_kcl.h" />
     <ClInclude Include="cuda_LinSolver.h" />
     <ClInclude Include="cuda_setup.h" />
     <ClInclude Include="helpers.h" />
@@ -168,6 +169,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <ClInclude Include="transistor.h" />
   </ItemGroup>
   <ItemGroup>
+    <CudaCompile Include="cuda_kcl.cu">
+      <FileType>CppCode</FileType>
+    </CudaCompile>
     <ClCompile Include="sim.cpp" />
     <ClCompile Include="transistor.cpp" />
     <CudaCompile Include="cuda_LinSolver.cu">

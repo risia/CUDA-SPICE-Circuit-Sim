@@ -1,0 +1,17 @@
+*** SPICE deck for cell P_test1{sch} from library CUDA_SPICE
+*** Created on Wed Nov 28, 2018 14:27:02
+*** Last revised on Wed Nov 28, 2018 15:55:19
+*** Written on Wed Nov 28, 2018 15:55:36 by Electric VLSI Design System, version 9.07
+*** Layout tech: mocmos, foundry MOSIS
+*** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
+* Model cards are described in this file:
+.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+
+.global gnd vdd
+
+*** TOP LEVEL CELL: P_test1{sch}
+Mnmos@0 net@0 net@3 gnd gnd N L=0.044U W=0.044U
+Mpmos@0 vdd net@3 net@0 vdd P L=0.044U W=0.044U
+VVDC@0 vdd gnd DC 5V AC 0V 0
+VVDC@2 net@3 gnd DC 2.5V AC 0V 0
+.END

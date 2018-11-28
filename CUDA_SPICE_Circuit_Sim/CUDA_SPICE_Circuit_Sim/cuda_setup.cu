@@ -14,6 +14,7 @@ void checkCUDAErrorFn(const char *msg, const char *file, int line) {
 	exit(EXIT_FAILURE);
 }
 
+/*
 // Mallocs arrays and copies host data to device
 void setupDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* dev_vMat) {
 
@@ -33,6 +34,7 @@ void setupDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_
 
 	cudaDeviceSynchronize();
 }
+*/
 
 // copy data to host
 void copyDevMats(int n, float** gMat, float* dev_gMat, float* iMat, float* dev_iMat, float* vMat, float* dev_vMat) {

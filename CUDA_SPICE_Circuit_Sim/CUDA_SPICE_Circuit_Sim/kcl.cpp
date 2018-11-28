@@ -69,8 +69,8 @@ int Vdc_toMat(Element* V, float** gMat, float* iMat, float* vMat, int num_nodes)
 		iMat[n_n] += iMat[n_p];
 
 		iMat[n_p] = val;
-		gMat[n_p][n_n] = -1;
-		gMat[n_p][n_p] = 1;
+		gMat[n_p][n_n] = -1.0f;
+		gMat[n_p][n_p] = 1.0f;
 
 		if (vMat[n_p] != 0.0f) {
 			vMat[n_n] = vMat[n_p] - val;

@@ -4,6 +4,7 @@
     <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="cuda_LinSolver.cu" />
     <CudaCompile Include="cuda_setup.cu" />
+    <CudaCompile Include="cuda_kcl.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="parse">
@@ -38,5 +39,6 @@
     <ClInclude Include="cuda_LinSolver.h" />
     <ClInclude Include="transistor.h" />
     <ClInclude Include="sim.h" />
+    <ClInclude Include="cuda_kcl.h" />
   </ItemGroup>
 </Project>

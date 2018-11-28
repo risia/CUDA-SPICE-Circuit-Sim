@@ -17,9 +17,16 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 	netlist.netNames.push_back("gnd");
 
 	// Default test model
-	Model* M_ptr = new Model();
+	Model* NM_ptr = new Model(); // nmos model
+	Model* PM_ptr = new Model(); // pmos model
 
-	netlist.modelList.push_back(M_ptr);
+	PM_ptr->name = "P";
+	PM_ptr->type = 'p';
+	PM_ptr->u0 = 540.0f;
+	PM_ptr->vt0 = -0.7f;
+
+	netlist.modelList.push_back(NM_ptr);
+	netlist.modelList.push_back(PM_ptr);
 
 
 	while (inFile)
@@ -33,6 +40,12 @@ int parseNetlist(char* filepath, Netlist &netlist) {
 	}
 
 	inFile.close();
+
+	netlist.elements.shrink_to_fit();
+	netlist.active_elem.shrink_to_fit();
+	netlist.netNames.shrink_to_fit();
+	netlist.vdcList.shrink_to_fit();
+	netlist.vdcList.shrink_to_fit();
 
 	return 0;
 }
@@ -75,6 +88,15 @@ int parseElement(char* line, Netlist& netlist) {
 		// apply prefix multiplier
 		type = token[strlen(token) - 1]; // reusing variable
 		e.params.push_back(numPrefix(val, type));
+
+		// If it's a short/ideal wire:
+		if (val == 0.0f) {
+			// Make it a 0V "source" instead
+			e.nodes.shrink_to_fit();
+			e.params.shrink_to_fit();
+			netlist.vdcList.push_back(e);
+			return 0;
+		}
 	}
 	// parse VDC
 	else if (type == 'V') {
