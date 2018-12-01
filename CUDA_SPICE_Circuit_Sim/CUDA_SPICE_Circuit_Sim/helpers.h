@@ -17,6 +17,7 @@ string  mat2DToStr(float** mat, int m, int n);
 string mat1DToStr(float* mat, int n);
 
 void matCpy(float* dst, float* src, int n);
+void mat2DCpy(float** dst, float** src, int m, int n);
 
 void resetMat1D(float* mat, int n);
 void resetMat2D(float** mat, int m, int n);

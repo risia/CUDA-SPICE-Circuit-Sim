@@ -16,5 +16,6 @@ __global__ void kernTolCheck(int n, float* vMat, float* vGuess, bool* isConverge
 void gpuMatReduce(int n, float* gMat, float* iMat);
 
 void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat);
+void gpuDevMatSolve(int n, float* dev_gMat, float* dev_iMat, float* dev_vMat);
 
 void gpuNonLinConverge(int n, float** gMat, float* iMat, float* vMat);

@@ -58,6 +58,14 @@ void matCpy(float* dst, float* src, int n) {
 	}
 }
 
+void mat2DCpy(float** dst, float** src, int m, int n) {
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			dst[i][j] = src[i][j];
+		}
+	}
+}
+
 void resetMat1D(float* mat, int n) {
 	for (int i = 0; i < n; i++) {
 		mat[i] = 0.0f;

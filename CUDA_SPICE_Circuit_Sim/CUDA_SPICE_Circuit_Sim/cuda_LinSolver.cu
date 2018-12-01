@@ -87,22 +87,7 @@ void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat) {
 	float* dev_vMat = NULL;
 	float* dev_iMat = NULL;
 
-	//setupDevMats(n, gMat, dev_gMat, iMat, dev_iMat, dev_vMat);
-	// alloc device memory
-	cudaMalloc((void**)&dev_iMat, n * sizeof(float));
-	cudaMalloc((void**)&dev_gMat, n * n * sizeof(float));
-	cudaMalloc((void**)&dev_vMat, n * sizeof(float));
-	checkCUDAError("Malloc Failure!\n");
-
-	// copy host to device
-	for (int i = 0; i < n; i++) {
-		cudaMemcpy(dev_gMat + i*n, gMat[i], n * sizeof(float), cudaMemcpyHostToDevice);
-		checkCUDAError("Host gMat MemCpy Failure!\n");
-	}
-	cudaMemcpy(dev_iMat, iMat, n * sizeof(float), cudaMemcpyHostToDevice);
-	checkCUDAError("Host iMat MemCpy Failure!\n");
-	cudaMemcpy(dev_vMat, vMat, n * sizeof(float), cudaMemcpyHostToDevice);
-	checkCUDAError("Host vMat MemCpy Failure!\n");
+	setupDevMats(n, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
 
 
 	int numBlocks = ceil(float(n) / BS_X);
@@ -125,19 +110,19 @@ void gpuMatSolve(int n, float** gMat, float* iMat, float* vMat) {
 
 	cudaDeviceSynchronize();
 
-	//copyDevMats(n, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
-	for (int i = 0; i < n; i++) {
-		cudaMemcpy(gMat[i], dev_gMat + i*n, n * sizeof(float), cudaMemcpyDeviceToHost);
-		checkCUDAError("Device gMat MemCpy Failure!\n");
-	}
-
-	cudaMemcpy(vMat, dev_vMat, n * sizeof(float), cudaMemcpyDeviceToHost);
-	checkCUDAError("Device vMat MemCpy Failure!\n");
-
-	cudaMemcpy(iMat, dev_iMat, n * sizeof(float), cudaMemcpyDeviceToHost);
-	checkCUDAError("Device iMat MemCpy Failure!\n");
-
+	copyFromDevMats(n, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
 	cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
+}
+
+void gpuDevMatSolve(int n, float* dev_gMat, float* dev_iMat, float* dev_vMat) {
+	int numBlocks = ceil(float(n) / BS_X);
+	dim3 numBlocks3D = dim3(numBlocks, numBlocks, 1);
+	dim3 blockSize = dim3(BS_X, BS_Y, 1);
+	for (int i = 0; i < n; i++) {
+		kernMatReduce << < numBlocks3D, blockSize >> > (n, dev_gMat, dev_iMat, i);
+	}
+	kernPlugKnownV << < numBlocks3D, blockSize >> > (n, dev_gMat, dev_iMat, dev_vMat);
+	kernMatSolve << <numBlocks, BS_X >> >(n, dev_gMat, dev_iMat, dev_vMat);
 }
 
 /*

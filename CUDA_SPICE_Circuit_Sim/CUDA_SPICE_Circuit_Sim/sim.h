@@ -8,6 +8,8 @@
 
 void op(Netlist netlist);
 
+void cuda_op(Netlist netlist);
+
 float** dcSweep(Netlist netlist, char* name, float start, float stop, float step);
 
-void cuda_op(CUDA_Net netlist);
+void transient(Netlist netlist, float start, float stop, float step);

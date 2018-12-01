@@ -2,7 +2,7 @@
 
 int main() {
 	Netlist netlist;
-	CUDA_Net* dev_net = new CUDA_Net();
+	//CUDA_Net* dev_net = new CUDA_Net();
 
 	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Bigger_test.spi";
 	parseNetlist(file, netlist);
@@ -29,12 +29,22 @@ int main() {
 
 	freeGpuNetlist(dev_net);
 	*/
+	using namespace std::chrono;
 
-	op(netlist);
+	high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
+	cuda_op(netlist);
+
+	high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
+	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+
+	cout << "It took " << time_span.count() << " seconds.\n";
 
 	/*
 	TEST: DC Sweep
 	*/
+	/*
 	float start = 0.0f;
 	float stop = 5.0f;
 	float step = 0.25f;
@@ -47,6 +57,7 @@ int main() {
 	if (stop != (start + step * num_steps)) num_steps++;
 
 	freeMat2D(sweep, num_steps);
+	*/
 
 	return 0;
 
