@@ -21,4 +21,4 @@ void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat);
 
 // For dc sweep need to find swept element
 // Since we're looping through anyway, easiest here
-void  linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name, char &type, int &index);
+Element* linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name);

@@ -102,25 +102,15 @@ void op(Netlist netlist) {
 	free(vGuess);
 }
 
-void cuda_op(Netlist netlist) {
+void cuda_op(CUDA_Net netlist) {
 	// Copy netlist passive data to device
-	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
-	int num_mos = netlist.active_elem.size();
-	Element* mosList = netlist.active_elem.data();
+	int n_nodes = netlist.n_nodes; // node 0 = GND
+	int n_mos = netlist.n_active;
+	CUDA_Elem* mosList = netlist.actives;
 
-	int num_vdc = netlist.vdcList.size();
-	Element* vdcList = netlist.vdcList.data();
-
-	Element* elem = netlist.elements.data();
-	int num_elem = netlist.elements.size();
-	Element* dev_elem = NULL;
-
-
-	cudaMalloc((void**)&dev_elem, num_elem * sizeof(Element));
-	cudaMemcpy(dev_elem, elem, num_elem * sizeof(Element), cudaMemcpyHostToDevice);
-	checkCUDAError("CUDA Element setup Failure!\n");
-
-	cudaFree(dev_elem);
+	int n_vdc = netlist.n_vdc;
+	CUDA_Elem* vdcList = netlist.vdcList;
+	int n_passive = netlist.n_passive;
 }
 
 void dcSweep(Netlist netlist, char* name, float start, float stop, float step) {
@@ -139,7 +129,7 @@ void dcSweep(Netlist netlist, char* name, float start, float stop, float step) {
 	float* vMat = mat1D(num_nodes);
 
 	// find element named & setup matrices
-	linNetlistToMatFindElem(netlist, gMat, iMat, vMat, name, type, index);
+	Element* swp_elem = linNetlistToMatFindElem(netlist, gMat, iMat, vMat, name);
 
 
 	// Make copy of original value

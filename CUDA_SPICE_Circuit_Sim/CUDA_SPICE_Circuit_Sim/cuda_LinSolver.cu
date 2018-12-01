@@ -1,5 +1,6 @@
 #include "cuda_LinSolver.h"
 
+// Max block size is 1024 threads, 32 * 32
 #define BS_X 32
 #define BS_Y 32
 
@@ -68,7 +69,7 @@ __global__ void kernTolCheck(int n, float* vMat, float* vGuess, bool* isConverge
 
 void gpuMatReduce(int n, float* dev_gMat, float* dev_iMat) {
 
-	int numBlocks = ceil(float(n) / 32.0f);
+	int numBlocks = ceil(float(n) / BS_X);
 
 	dim3 numBlocks3D = dim3(numBlocks, numBlocks, 1);
 	dim3 blockSize = dim3(BS_X, BS_Y, 1);

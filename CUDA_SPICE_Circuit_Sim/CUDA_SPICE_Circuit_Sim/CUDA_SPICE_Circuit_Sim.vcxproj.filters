@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CudaCompile Include="kernel.cu" />
     <CudaCompile Include="cuda_LinSolver.cu" />
     <CudaCompile Include="cuda_setup.cu" />
     <CudaCompile Include="cuda_kcl.cu" />
+    <CudaCompile Include="cuda_netlist.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="parse">
@@ -40,5 +40,6 @@
     <ClInclude Include="transistor.h" />
     <ClInclude Include="sim.h" />
     <ClInclude Include="cuda_kcl.h" />
+    <ClInclude Include="cuda_netlist.h" />
   </ItemGroup>
 </Project>

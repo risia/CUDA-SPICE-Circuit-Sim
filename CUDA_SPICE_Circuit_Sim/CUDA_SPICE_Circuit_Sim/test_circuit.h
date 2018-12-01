@@ -2,6 +2,13 @@
 
 #include "spice.h"
 
+/*
+
+ORIGINAL HARD-CODED TEST CIRCUITS
+FROM BEFORE FILE PARSING
+
+*/
+
  /* 
  
  starting with element list of just resistors 

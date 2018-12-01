@@ -24,6 +24,8 @@ Each line represents a separate command or element unless a + sign is given
 https://www.seas.upenn.edu/~jan/spice/spice.overview.html
 */
 
+#ifndef MODEL_STRUCT
+#define MODEL_STRUCT
 struct Model {
 	char* name = "N";
 	char type = 'n';
@@ -33,6 +35,7 @@ struct Model {
 	float vt0 = 0.7f;
 	float pclm = 0.6171774f; // CLM parameter
 };
+#endif // !1
 
 struct Resistor {
 	float val;
@@ -109,6 +112,7 @@ struct Netlist {
 	// Transistors
 	vector<Element> active_elem;
 };
+
 
 int parseNetlist(char* filepath, Netlist &netlist);
 int parseElement(char* line, Netlist& netlist);

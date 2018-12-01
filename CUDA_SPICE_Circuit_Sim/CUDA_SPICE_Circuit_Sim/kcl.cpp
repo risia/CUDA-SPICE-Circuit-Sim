@@ -121,12 +121,12 @@ void VCCS_toMat(Element* I, float** gMat) {
 
 
 void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat) {
-	Element* vdcList = netlist.vdcList.data();
+	//Element* vdcList = netlist.vdcList.data();
 	Element* passives = netlist.elements.data();
 
-	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
+	//int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
 	int num_passive = netlist.elements.size();
-	int num_vdc = netlist.vdcList.size();
+	//int num_vdc = netlist.vdcList.size();
 
 	char type;
 
@@ -147,37 +147,40 @@ void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat) {
 
 }
 
-void  linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name, char &type, int &index) {
-	Element* vdcList = netlist.vdcList.data();
+Element* linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name) {
+	//Element* vdcList = netlist.vdcList.data();
 	Element* passives = netlist.elements.data();
 
-	int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
+	//int num_nodes = netlist.netNames.size() - 1; // node 0 = GND
 	int num_passive = netlist.elements.size();
-	int num_vdc = netlist.vdcList.size();
+	//int num_vdc = netlist.vdcList.size();
 
 	char t;
 
+	Element* elem = NULL;
+
 	// Populate Matrices from passive elements
 	for (int i = 0; i < num_passive; i++) {
-		t = netlist.elements[i].type;
+		t = passives[i].type;
 		if (t == 'R') R_toMat(passives + i, gMat);
 		else if (t == 'I') Idc_toMat(passives + i, iMat);
 		else if (t == 'G') VCCS_toMat(passives + i, gMat);
 
 		if (strcmp(passives[i].name, name) == 0) {
-			type = t;
-			index = i;
+			elem = &(passives[i]);
 		}
 
 	}
+	/*
 	// VDC Source populates G and I matrices
 	for (int i = 0; i < num_vdc; i++) {
 		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 
 		if (strcmp(vdcList[i].name, name) == 0) {
-			type = 'V';
-			index = i;
+			elem = &(passives[i]);
 		}
 	}
+	*/
 
+	return elem;
 }
