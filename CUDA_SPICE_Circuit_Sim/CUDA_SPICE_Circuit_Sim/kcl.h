@@ -17,8 +17,8 @@ void Idc_toMat(Element* I, float* iMat);
 void VCCS_toMat(Element* I, float** gMat);
 
 // For op matrix gen
-void linNetlistToMat(Netlist netlist, float** gMat, float* iMat, float* vMat);
+void linNetlistToMat(Netlist* netlist, float** gMat, float* iMat, float* vMat);
 
 // For dc sweep need to find swept element
 // Since we're looping through anyway, easiest here
-Element* linNetlistToMatFindElem(Netlist netlist, float** gMat, float* iMat, float* vMat, char* name);
+Element* linNetlistToMatFindElem(Netlist* netlist, float** gMat, float* iMat, float* vMat, char* name);

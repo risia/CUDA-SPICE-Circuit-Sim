@@ -6,6 +6,8 @@
 using namespace std;
 
 #define MAX_LINE 256
+#define TYPES "RVIGMC"
+#define N_TYPES 6
 
 /*
 Functions to parse spice netlist files
@@ -114,8 +116,12 @@ struct Netlist {
 };
 
 
-int parseNetlist(char* filepath, Netlist &netlist);
-int parseElement(char* line, Netlist& netlist);
+int parseNetlist(char* filepath, Netlist* netlist);
+
+void parseNodes(int n, Netlist* netlist, Element* e, char* delim);
+void parseValues(int n, int skip, Netlist* netlist, Element* e, char* delim);
+
+int parseElement(char* line, Netlist* netlist);
 int findNode(vector<char*> &nodeList, char* name, int n);
 Model* findModel(vector<Model*> &modelList, char* name, int n);
 float numPrefix(float num, char prefix);

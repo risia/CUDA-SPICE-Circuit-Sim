@@ -1,58 +1,96 @@
 #include "spice.h"
 
-int parseNetlist(char* filepath, Netlist &netlist) {
+int parseNetlist(char* filepath, Netlist* netlist) {
 
 	ifstream inFile(filepath);
 	char line[MAX_LINE];
 
 	// Initialize element arrays
-	vector<Element>().swap(netlist.elements);
-	vector<Element>().swap(netlist.vdcList);
-	vector<Element>().swap(netlist.active_elem);
-
-	vector<Model*>().swap(netlist.modelList);
-	vector<char*>().swap(netlist.netNames);
+	// So in the future users could run more
+	// than one file per session
+	vector<Element>().swap(netlist->elements);
+	vector<Element>().swap(netlist->vdcList);
+	vector<Element>().swap(netlist->active_elem);
+	vector<Model*>().swap(netlist->modelList);
+	vector<char*>().swap(netlist->netNames);
 
 	// Default ground node
-	netlist.netNames.push_back("gnd");
+	netlist->netNames.push_back("gnd");
 
-	// Default test model
+	// Default test models
 	Model* NM_ptr = new Model(); // nmos model
 	Model* PM_ptr = new Model(); // pmos model
 
+	// PMOS Model (for testing basically same as NMOS)
 	PM_ptr->name = "P";
 	PM_ptr->type = 'p';
 	PM_ptr->u0 = 540.0f;
-	PM_ptr->vt0 = -0.7f;
+	PM_ptr->vt0 = -0.7f; // just flipped this sign, really
 
-	netlist.modelList.push_back(NM_ptr);
-	netlist.modelList.push_back(PM_ptr);
+	netlist->modelList.push_back(NM_ptr);
+	netlist->modelList.push_back(PM_ptr);
 
 
 	while (inFile)
 	{
 		inFile.getline(line, MAX_LINE);
+		// Skip comments and empty lines
 		if (line[0] == '*' || line[0] == '\0') continue;
+
+		// Parse elements
 		if (line[0] != '.') parseElement(line, netlist);
-
-
+		// Print commands for testing for now, we'll parse later
 		else cout << line << endl;
 	}
 
 	inFile.close();
 
-	netlist.elements.shrink_to_fit();
-	netlist.active_elem.shrink_to_fit();
-	netlist.netNames.shrink_to_fit();
-	netlist.vdcList.shrink_to_fit();
-	netlist.vdcList.shrink_to_fit();
+	netlist->elements.shrink_to_fit();
+	netlist->active_elem.shrink_to_fit();
+	netlist->netNames.shrink_to_fit();
+	netlist->vdcList.shrink_to_fit();
+	netlist->vdcList.shrink_to_fit();
 
 	return 0;
 }
 
-int parseElement(char* line, Netlist& netlist) {
+void parseNodes(int n, Netlist* netlist, Element* e, char* delim) {
+	char* token;
+	int node;
+	for (int i = 0; i < n; i++) {
+		token = strtok(NULL, delim);
+		node = findNode(netlist->netNames, token, netlist->netNames.size());
+		e->nodes.push_back(node);
+	}
+}
+
+void parseValues(int n, int skip, Netlist* netlist, Element* e, char* delim) {
+	char* token;
+	float val;
+	char prefix;
+	for (int i = 0; i < n; i++) {
+		token = strtok(NULL, delim);
+		val = atof(token + skip);
+
+		// apply prefix multiplier
+		prefix = token[strlen(token) - 1];
+		e->params.push_back(numPrefix(val, prefix));
+	}
+}
+
+int parseElement(char* line, Netlist* netlist) {
 
 	char type = line[0];
+
+	// check if type allowed, return -1 if not
+	bool allowed = false;
+	for (int i = 0; i < N_TYPES; i++) {
+		if (type == TYPES[i]) {
+			allowed = true;
+			break;
+		}
+	}
+	if (allowed == false) return -1;
 
 	char* token;
 	char* delim = " ";
@@ -64,136 +102,79 @@ int parseElement(char* line, Netlist& netlist) {
 
 	e.type = type;
 
+	// Common Parameters beginning Line
 	// get name
 	token = strtok(line + 1, delim);
 	e.name = new char[strlen(token) + 1];
 	strcpy(e.name, token);
 
-	// node 1 (transistor drain)
-	token = strtok(NULL, delim);
-	node = findNode(netlist.netNames, token, netlist.netNames.size());
-	e.nodes.push_back(node);
-
-	// node 2 (transistor gate)
-	token = strtok(NULL, delim);
-	node = findNode(netlist.netNames, token, netlist.netNames.size());
-	e.nodes.push_back(node);
-
+	// Diverging parts
 	// parse resistor
 	if (type == 'R') {
-		// value
-		token = strtok(NULL, delim);
-		val = atof(token);
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
+		parseNodes(2, netlist, &e, delim);
+		parseValues(1, 0, netlist, &e, delim);
 
 		// If it's a short/ideal wire:
-		if (val == 0.0f) {
+		if (e.params[0] == 0.0f) {
 			// Make it a 0V "source" instead
 			e.nodes.shrink_to_fit();
 			e.params.shrink_to_fit();
-			netlist.vdcList.push_back(e);
+			netlist->vdcList.push_back(e);
 			return 0;
 		}
 	}
 	// parse VDC
 	else if (type == 'V') {
+		parseNodes(2, netlist, &e, delim);
 		// DC value
 		token = strtok(NULL, delim);
 		if (strcmp(token, "DC") == 0) {
-			token = strtok(NULL, delim);
-			val = atof(token);
+			parseValues(1, 0, netlist, &e, delim);
 		}
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
 
 		e.nodes.shrink_to_fit();
 		e.params.shrink_to_fit();
-		netlist.vdcList.push_back(e);
+		netlist->vdcList.push_back(e);
 		return 0;
 	}
 	// Parsse IDC
 	else if (type == 'I') {
+		parseNodes(2, netlist, &e, delim);
 		// val
 		token = strtok(NULL, delim);
 		if (strcmp(token, "DC") == 0) {
-			token = strtok(NULL, delim);
-			val = atof(token);
+			parseValues(1, 0, netlist, &e, delim);
 		}
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
 	}
 
 	else if (type == 'G') {
-
-		// node vp
-		token = strtok(NULL, delim);
-		node = findNode(netlist.netNames, token, netlist.netNames.size());
-		e.nodes.push_back(node);
-
-		// node vn
-		token = strtok(NULL, delim);
-		node = findNode(netlist.netNames, token, netlist.netNames.size());
-		e.nodes.push_back(node);
-
+		// nodes
+		parseNodes(4, netlist, &e, delim);
 		// gain
-		token = strtok(NULL, delim);
-		val = atof(token);
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
+		parseValues(1, 0, netlist, &e, delim);
 	}
 	else if (type == 'M') {
-		// source
-		token = strtok(NULL, delim);
-		node = findNode(netlist.netNames, token, netlist.netNames.size());
-		e.nodes.push_back(node);
-
-		// bulk
-		token = strtok(NULL, delim);
-		node = findNode(netlist.netNames, token, netlist.netNames.size());
-		e.nodes.push_back(node);
+		parseNodes(4, netlist, &e, delim);
 
 		// Model
 		token = strtok(NULL, delim);
-		e.model = findModel(netlist.modelList, token, netlist.modelList.size());
+		e.model = findModel(netlist->modelList, token, netlist->modelList.size());
 
 		// If null may need to throw error. For now:
-		if (e.model == NULL) e.model = netlist.modelList[0]; // default model
+		if (e.model == NULL) e.model = netlist->modelList[0]; // default model
 
-		// Length
-		token = strtok(NULL, delim);
-		val = atof(token + 2); // skip L=
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
-
-		// Width
-		token = strtok(NULL, delim);
-		val = atof(token + 2); // skip W=
-
-		// apply prefix multiplier
-		type = token[strlen(token) - 1]; // reusing variable
-		e.params.push_back(numPrefix(val, type));
+		// Length & Width
+		parseValues(2, 2, netlist, &e, delim);
 
 		e.nodes.shrink_to_fit();
 		e.params.shrink_to_fit();
-		netlist.active_elem.push_back(e);
+		netlist->active_elem.push_back(e);
 		return 0;
 	}
-	else return -1;
 
 	e.nodes.shrink_to_fit();
 	e.params.shrink_to_fit();
-	netlist.elements.push_back(e);
+	netlist->elements.push_back(e);
 
 
 	return 0;
