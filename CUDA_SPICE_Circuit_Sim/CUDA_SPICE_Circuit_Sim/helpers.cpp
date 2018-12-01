@@ -24,6 +24,7 @@ void freeMat2D(float** mat, int n) {
 	for (int i = 0; i < n; i++) {
 		free(mat[i]);
 	}
+	free(mat);
 }
 
 string  mat2DToStr(float** mat, int m, int n) {

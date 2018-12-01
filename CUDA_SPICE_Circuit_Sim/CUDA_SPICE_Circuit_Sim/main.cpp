@@ -32,6 +32,22 @@ int main() {
 
 	op(netlist);
 
+	/*
+	TEST: DC Sweep
+	*/
+	float start = 0.0f;
+	float stop = 5.0f;
+	float step = 0.25f;
+
+	char* name = "VDC@0";
+
+	float** sweep = dcSweep(netlist, name, start, stop, step);
+
+	int num_steps = floor((stop - start) / step);
+	if (stop != (start + step * num_steps)) num_steps++;
+
+	freeMat2D(sweep, num_steps);
+
 	return 0;
 
 

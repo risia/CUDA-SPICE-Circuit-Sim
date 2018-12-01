@@ -16,5 +16,5 @@ Rres@2 net@1 net@0 1
 Rres@3 gnd net@10 1
 Rres@4 gnd net@10 1
 Rres@5 net@10 net@18 1
-VVDC@0 net@18 net@0 DC 1V AC 0V 0
+VVDC@0 net@18 net@0 DC 2.5V AC 0V 0
 .END
