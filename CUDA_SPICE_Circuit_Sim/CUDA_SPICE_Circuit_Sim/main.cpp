@@ -4,7 +4,7 @@ int main() {
 	Netlist netlist;
 	CUDA_Net* dev_net = new CUDA_Net();
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/test2.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Bigger_test.spi";
 	parseNetlist(file, netlist);
 
 	/*
@@ -39,7 +39,7 @@ int main() {
 	float stop = 5.0f;
 	float step = 0.25f;
 
-	char* name = "VDC@0";
+	char* name = "VDC@1";
 
 	float** sweep = dcSweep(netlist, name, start, stop, step);
 

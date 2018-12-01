@@ -136,8 +136,8 @@ float** dcSweep(Netlist netlist, char* name, float start, float stop, float step
 	float* vMat = mat1D(num_nodes);
 	float* vGuess = mat1D(num_nodes);
 
-	int num_steps = floor((stop - start) / step);
-	if (stop != (start + step * num_steps)) num_steps++;
+	int num_steps = floor(1 + (stop - start) / step) ;
+	if (stop > (start + step * num_steps)) num_steps++;
 
 	// rows are sweep step, columns node voltage
 	// col 0 is current val of swept parameter for that solution
