@@ -19,7 +19,7 @@ void op(Netlist* netlist) {
 	// Store prev. guess for calc. and comparison
 	float* vGuess = mat1D(num_nodes);
 
-	linNetlistToMat(netlist, gMat, iMat, vMat);
+	linNetlistToMat(netlist, gMat, iMat);
 
 	for (int i = 0; i < num_vdc; i++) {
 		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
@@ -45,7 +45,7 @@ void op(Netlist* netlist) {
 		resetMat1D(vMat, num_nodes);
 
 		// Apply passive elements
-		linNetlistToMat(netlist, gMat, iMat, vMat);
+		linNetlistToMat(netlist, gMat, iMat);
 
 		// Apply Transistor
 		for (int i = 0; i < num_mos; i++) {
@@ -104,7 +104,7 @@ void cuda_op(Netlist* netlist) {
 
 	// setup of passive elements g and i matrices, 
 	// keep copy on CPU so we don't need to rebuild passives
-	linNetlistToMat(netlist, gMat, iMat, vMat);
+	linNetlistToMat(netlist, gMat, iMat);
 	mat2DCpy(gMatCpy, gMat, num_nodes, num_nodes);
 	matCpy(iMatCpy, iMat, num_nodes);
 
@@ -117,9 +117,6 @@ void cuda_op(Netlist* netlist) {
 
 	// passive solution
 	gpuDevMatSolve(num_nodes, dev_gMat, dev_iMat, dev_vMat);
-
-	// copy vMat from device to guess
-	copyFromDevMats(num_nodes, NULL, NULL, NULL, NULL, vGuess, dev_vMat);
 
 	bool isConverged = false;
 	if (num_mos == 0) isConverged = true;
@@ -243,7 +240,7 @@ float** dcSweep(Netlist* netlist, char* name, float start, float stop, float ste
 		resetMat1D(iMat, num_nodes);
 		resetMat1D(vMat, num_nodes);
 
-		linNetlistToMat(netlist, gMat, iMat, vMat);
+		linNetlistToMat(netlist, gMat, iMat);
 		for (int i = 0; i < num_vdc; i++) {
 			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
 		}
@@ -263,7 +260,7 @@ float** dcSweep(Netlist* netlist, char* name, float start, float stop, float ste
 			resetMat1D(iMat, num_nodes);
 			resetMat1D(vMat, num_nodes);
 
-			linNetlistToMat(netlist, gMat, iMat, vMat);
+			linNetlistToMat(netlist, gMat, iMat);
 			for (int i = 0; i < num_mos; i++) {
 				MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
 			}
@@ -319,5 +316,163 @@ float** dcSweep(Netlist* netlist, char* name, float start, float stop, float ste
 
 
 void transient(Netlist* netlist, float start, float stop, float step) {
+	float* dev_gMat = NULL;
+	float* dev_vMat = NULL;
+	float* dev_iMat = NULL;
 
+	int num_nodes = netlist->netNames.size() - 1; // node 0 = GND
+	int num_mos = netlist->active_elem.size();
+	int num_vdc = netlist->vdcList.size();
+
+	Element* mosList = netlist->active_elem.data();
+	Element* vdcList = netlist->vdcList.data();
+
+	// Setup matrices
+	float** gMat = mat2D(num_nodes, num_nodes);
+	float* iMat = mat1D(num_nodes);
+	float* vMat = mat1D(num_nodes);
+	float* vGuess = mat1D(num_nodes);
+	float* vPrev = mat1D(num_nodes);
+
+	float** gMatCpy = mat2D(num_nodes, num_nodes);
+	float* iMatCpy = mat1D(num_nodes);
+
+	float time = 0.0f;
+
+	// Setup passive matrices
+	linNetlistToMat(netlist, gMat, iMat);
+	mat2DCpy(gMatCpy, gMat, num_nodes, num_nodes);
+	matCpy(iMatCpy, iMat, num_nodes);
+
+	for (int i = 0; i < num_vdc; i++) {
+		VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
+	}
+
+	setupDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
+
+	// Solve for t = 0s
+	gpuDevMatSolve(num_nodes, dev_gMat, dev_iMat, dev_vMat);
+	copyFromDevMats(num_nodes, NULL, NULL, NULL, NULL, vMat, dev_vMat);
+	
+	bool isConverged = false;
+	if (num_mos == 0) isConverged = true;
+	int n = 0;
+	while (!isConverged && n < 1000 && num_mos > 0) {
+		matCpy(vGuess, vMat, num_nodes);
+
+		mat2DCpy(gMat, gMatCpy, num_nodes, num_nodes);
+		matCpy(iMat, iMatCpy, num_nodes);
+		resetMat1D(vMat, num_nodes);
+
+		for (int i = 0; i < num_mos; i++) {
+			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+		}
+		for (int i = 0; i < num_vdc; i++) {
+			VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
+		}
+
+		copyToDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
+		gpuDevMatSolve(num_nodes, dev_gMat, dev_iMat, dev_vMat);
+		copyFromDevMats(num_nodes, NULL, NULL, NULL, NULL, vMat, dev_vMat);
+
+		isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
+		n++;
+	}
+	// Previous timestep voltage Matrix
+	matCpy(vPrev, vMat, num_nodes);
+
+	int skipped_steps = floor(start / step);
+	if (start >(step * skipped_steps)) skipped_steps++;
+
+	int n_steps = floor(1 + stop / step);
+	if (stop > (step * n_steps)) n_steps++;
+	float ** vSimMat = mat2D(n_steps - skipped_steps, num_nodes + 1);
+
+	for (int t = 0; t < n_steps; t++) {
+		// setup matices
+		mat2DCpy(gMat, gMatCpy, num_nodes, num_nodes);
+		matCpy(iMat, iMatCpy, num_nodes);
+		resetMat1D(vMat, num_nodes);
+
+		tranJustCToMat(netlist, gMat, iMat, vPrev, step);
+		for (int i = 0; i < num_vdc; i++) {
+			VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
+		}
+		// Guess solution
+		copyToDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
+		gpuDevMatSolve(num_nodes, dev_gMat, dev_iMat, dev_vMat);
+		copyFromDevMats(num_nodes, NULL, NULL, NULL, NULL, vMat, dev_vMat);
+
+		/*
+		Transistor convergence loop
+		*/
+		
+		n = 0;
+		isConverged = false;
+		if (num_mos == 0) isConverged = true;
+		while (!isConverged && n < 1000 && num_mos > 0) {
+			matCpy(vGuess, vMat, num_nodes);
+
+			resetMat2D(gMat, num_nodes, num_nodes);
+			resetMat1D(iMat, num_nodes);
+			resetMat1D(vMat, num_nodes);
+
+			linNetlistToMat(netlist, gMat, iMat);
+			tranJustCToMat(netlist, gMat, iMat, vPrev, step);
+			for (int i = 0; i < num_mos; i++) {
+				MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
+			}
+			for (int i = 0; i < num_vdc; i++) {
+				Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+			}
+
+			copyToDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
+			gpuDevMatSolve(num_nodes, dev_gMat, dev_iMat, dev_vMat);
+			copyFromDevMats(num_nodes, NULL, NULL, NULL, NULL, vMat, dev_vMat);
+
+			isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
+			n++;
+		}
+		// copy solution to output
+		if (t >= skipped_steps) {
+			vSimMat[t - skipped_steps][0] = time;
+			matCpy(vSimMat[t - skipped_steps] + 1, vMat, num_nodes);
+		}
+		matCpy(vPrev, vMat, num_nodes);
+
+
+		if (t == n_steps - 2) time = stop;
+		else if (t == skipped_steps - 1) time = start;
+		else time += step;
+	}
+
+	// store solutions,
+	// allow printing when finished or save to file
+	ofstream sweep_output;
+	sweep_output.open("transient.txt");
+
+	string out = mat2DToStr(vSimMat, n_steps - skipped_steps, num_nodes + 1);
+	cout << "Transient Solutions:\n\n" << "Time(s)";
+	sweep_output << "Time(s)";
+	for (int i = 1; i <= num_nodes; i++) {
+		sweep_output << " " << netlist->netNames[i];
+		cout << " " << netlist->netNames[i];
+	}
+	sweep_output << "\n" << out;
+	cout << "\n" << out;
+
+	sweep_output.close();
+
+
+	// Cleanup
+	cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
+	freeMat2D(gMat, num_nodes);
+	free(iMat);
+	free(vMat);
+	free(vGuess);
+	freeMat2D(gMatCpy, num_nodes);
+	free(iMatCpy);
+
+	free(vPrev);
+	freeMat2D(vSimMat, n_steps);
 }

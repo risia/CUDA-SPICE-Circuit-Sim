@@ -1,0 +1,16 @@
+*** SPICE deck for cell S_test{sch} from library CUDA_SPICE
+*** Created on Sun Dec 02, 2018 12:03:03
+*** Last revised on Sun Dec 02, 2018 12:07:58
+*** Written on Sun Dec 02, 2018 12:08:18 by Electric VLSI Design System, version 9.07
+*** Layout tech: mocmos, foundry MOSIS
+*** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
+* Model cards are described in this file:
+.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+
+.global gnd
+
+*** TOP LEVEL CELL: S_test{sch}
+Ccap@0 gnd net@4 0.1
+Rres@0 net@4 net@2 100
+VVSIN@0 net@2 gnd sin (1 1V 1MHz 5ns 0) DC 0V AC 0V 0
+.END

@@ -70,11 +70,15 @@ void parseValues(int n, int skip, Netlist* netlist, Element* e, char* delim) {
 	char prefix;
 	for (int i = 0; i < n; i++) {
 		token = strtok(NULL, delim);
-		val = atof(token + skip);
+		if (token == NULL) e->params.push_back(0.0f);
 
-		// apply prefix multiplier
-		prefix = token[strlen(token) - 1];
-		e->params.push_back(numPrefix(val, prefix));
+		else {
+			val = atof(token + skip);
+
+			// apply prefix multiplier
+			prefix = token[strlen(token) - 1];
+			e->params.push_back(numPrefix(val, prefix));
+		}
 	}
 }
 
@@ -93,14 +97,13 @@ int parseElement(char* line, Netlist* netlist) {
 	if (allowed == false) return -1;
 
 	char* token;
-	char* delim = " ";
+	char* delim = " ()";
+
+	Element e;
+	e.type = type;
 
 	float val;
 	int node;
-
-	Element e;
-
-	e.type = type;
 
 	// Common Parameters beginning Line
 	// get name
@@ -123,13 +126,30 @@ int parseElement(char* line, Netlist* netlist) {
 			return 0;
 		}
 	}
-	// parse VDC
+	// parse Voltage sources
 	else if (type == 'V') {
 		parseNodes(2, netlist, &e, delim);
 		// DC value
-		token = strtok(NULL, delim);
-		if (strcmp(token, "DC") == 0) {
+		token = strlwr(strtok(NULL, delim));
+		if (strcmp(token, "dc") == 0) {
 			parseValues(1, 0, netlist, &e, delim);
+		}
+		else if (strcmp(token, "sin") == 0) {
+			e.type = 'S'; // change type so identify for transient
+			parseValues(6, 0, netlist, &e, delim);
+		}
+		else if (strcmp(token, "pulse") == 0) {
+			e.type = 'P';
+			e.params.push_back(0.0f); // DC val placeholder
+			parseValues(7, 0, netlist, &e, delim);
+
+			// check if actual DC value specified
+			token = strlwr(strtok(NULL, delim));
+			if (strcmp(token, "dc") == 0) {
+				parseValues(1, 0, netlist, &e, delim);
+			}
+			e.params[0] = e.params.back();
+			e.params.pop_back();
 		}
 
 		e.nodes.shrink_to_fit();
@@ -141,8 +161,8 @@ int parseElement(char* line, Netlist* netlist) {
 	else if (type == 'I') {
 		parseNodes(2, netlist, &e, delim);
 		// val
-		token = strtok(NULL, delim);
-		if (strcmp(token, "DC") == 0) {
+		token = strlwr(strtok(NULL, delim));
+		if (strcmp(token, "dc") == 0) {
 			parseValues(1, 0, netlist, &e, delim);
 		}
 	}
@@ -161,7 +181,10 @@ int parseElement(char* line, Netlist* netlist) {
 		e.model = findModel(netlist->modelList, token, netlist->modelList.size());
 
 		// If null may need to throw error. For now:
-		if (e.model == NULL) e.model = netlist->modelList[0]; // default model
+		if (e.model == NULL) {
+			e.model = netlist->modelList[0]; // default model
+			cout << "\nMissing model for MOSFET named:" << e.name << "\n";
+		}
 
 		// Length & Width
 		parseValues(2, 2, netlist, &e, delim);
@@ -170,6 +193,10 @@ int parseElement(char* line, Netlist* netlist) {
 		e.params.shrink_to_fit();
 		netlist->active_elem.push_back(e);
 		return 0;
+	}
+	else if (type == 'C') {
+		parseNodes(2, netlist, &e, delim);
+		parseValues(1, 0, netlist, &e, delim);
 	}
 
 	e.nodes.shrink_to_fit();
