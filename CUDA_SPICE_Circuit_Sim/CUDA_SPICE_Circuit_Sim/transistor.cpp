@@ -177,48 +177,47 @@ void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, fl
 	}
 
 
+
+	float vth = T->model->vt0;
 	float L = T->params[0];
 	float W = T->params[1];
 	float Cox = (T->model->epsrox * PERMITTIVITY / (T->model->tox * 100.f));
 
-	float Cgcb = Cox * 1e-4 * W * L;
-
-	float vth = T->model->vt0;
-	if (Vg - Vs <= vth && T->model->type == 'n') {
-
-		Element Cg;
-		Cg.type = 'C';
-		Cg.nodes.push_back(n_g + 1);
-		Cg.nodes.push_back(n_b + 1);
-		Cg.params.push_back(Cgcb);
-
-		C_toMat(&Cg, gMat, iMat, vPrev, h);
-
-		return;
-
-	}
-	if (Vg - Vs >= vth && T->model->type == 'p') {
-
-		Element Cg;
-		Cg.type = 'C';
-		Cg.nodes.push_back(n_g + 1);
-		Cg.nodes.push_back(n_b + 1);
-		Cg.params.push_back(Cgcb);
-
-		C_toMat(&Cg, gMat, iMat, vPrev, h);
-
-		return;
-	}
-
-
 	float k = (W / L) * T->model->u0 * Cox;
 	float Vov = Vg - Vs - vth;
+
 	float CLM = T->model->pclm * Vov;
 
 	if (T->model->type == 'p') {
 		k = -k;
 		CLM = -CLM;
 	}
+
+	float Cgcb = Cox * 1e-4 * W * L;
+
+
+	if ((Vg - Vs <= vth && T->model->type == 'n') || (Vg - Vs >= vth && T->model->type == 'p')) {
+		// Approximate subthreshold capacitance
+		Element Cg;
+		Cg.type = 'C';
+		Cg.nodes.push_back(n_g + 1);
+		Cg.nodes.push_back(n_b + 1);
+		Cg.params.push_back(Cgcb);
+
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
+
+		// Current:
+		float i0 = k * T->model->nfactor * (V_THERMAL) * (V_THERMAL);
+		float Ids = i0 * expf(-fabs(Vov) / ((T->model->nfactor) * (V_THERMAL)));
+
+		if (n_d >= 0) iMat[n_d] -= Ids;
+		if (n_s >= 0) iMat[n_s] += Ids;
+
+
+		return;
+
+	}
+
 
 	if ((Vd - Vs > Vov && T->model->type == 'n') || (Vd - Vs < Vov && T->model->type == 'p')) {
 
