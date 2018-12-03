@@ -83,11 +83,22 @@ int main(int argc, char** argv) {
 	TEST: DC Sweep
 	*/
 	
-	float start = 20.1e-9;
-	float stop = 20.2e-9;
-	float step = 0.005e-9f;
+	float start = 1.9e-9;
+	float stop = 2.5e-9;
+	float step = 0.01e-9f;
 
 	transient(netlist, start, stop, step);
+
+
+	start = 0.0f;
+	stop = 5.0f;
+	step = 0.1f;
+
+	char* name = "VPulse@0";
+
+	dcSweep(netlist, name, start, stop, step);
+
+
 	
 	free(netlist);
 	return 0;

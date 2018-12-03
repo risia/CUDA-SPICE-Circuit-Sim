@@ -172,7 +172,7 @@ void cuda_op(Netlist* netlist) {
 	free(iMatCpy);
 }
 
-float** dcSweep(Netlist* netlist, char* name, float start, float stop, float step) {
+void dcSweep(Netlist* netlist, char* name, float start, float stop, float step) {
 	// variable setup
 	// store original parameter value
 	// in case we need to do multiple simulations
@@ -283,24 +283,10 @@ float** dcSweep(Netlist* netlist, char* name, float start, float stop, float ste
 	swp_elem->params[0] = original_val;
 
 
-	// store solutions,
-	// allow printing when finished or save to file
-	ofstream sweep_output;
-	sweep_output.open("dc_sweep.txt");
-
-	string out = mat2DToStr(vSweepMat, num_steps, num_nodes + 1);
-	cout << "DC Sweep Solutions:\n\n" << name;
-	sweep_output << name;
-	for (int i = 1; i <= num_nodes; i++) {
-		sweep_output << " " << netlist->netNames[i];
-		cout << " " << netlist->netNames[i];
-	}
-	sweep_output << "\n" << out;
-	cout << "\n" << out;
-
-	sweep_output.close();
-
-
+	char** names = netlist->netNames.data();
+	names[0] = name;
+	mat2DtoCSV(names, vSweepMat, num_steps, num_nodes + 1, "dcSweep.csv");
+	names[0] = "gnd";
 
 	// cleanup
 
@@ -308,9 +294,9 @@ float** dcSweep(Netlist* netlist, char* name, float start, float stop, float ste
 	free(iMat);
 	free(vMat);
 	free(vGuess);
+	freeMat2D(vSweepMat, num_steps);
 
-
-	return vSweepMat;
+	//return vSweepMat;
 }
 
 
@@ -365,8 +351,8 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 		resetMat1D(vMat, num_nodes);
 
 		for (int i = 0; i < num_mos; i++) {
-			//MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
-			transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
+			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+			//transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
 		}
 		for (int i = 0; i < num_vdc; i++) {
 			VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
@@ -421,8 +407,8 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 			linNetlistToMat(netlist, gMat, iMat);
 			tranJustCToMat(netlist, gMat, iMat, vPrev, step);
 			for (int i = 0; i < num_mos; i++) {
-				transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
-				//MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
+				//transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
+				MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
 			}
 			for (int i = 0; i < num_vdc; i++) {
 				VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
@@ -456,22 +442,11 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 	}
 
 	// store solutions,
-	// allow printing when finished or save to file
-	ofstream sweep_output;
-	sweep_output.open("transient.txt");
-
-	string out = mat2DToStr(vSimMat, n_steps - skipped_steps, num_nodes + 1);
-	//cout << "Transient Solutions:\n\n" << "Time(s)";
-	sweep_output << "Time(s)";
-	for (int i = 1; i <= num_nodes; i++) {
-		sweep_output << " " << netlist->netNames[i];
-		//cout << " " << netlist->netNames[i];
-	}
-	sweep_output << "\n" << out;
-	//cout << "\n" << out;
-
-	sweep_output.close();
-
+	// save to file csv
+	char** names = netlist->netNames.data();
+	names[0] = "Time(s)";
+	mat2DtoCSV(names, vSimMat, n_steps - skipped_steps, num_nodes + 1, "transient.csv");
+	names[0] = "gnd";
 
 	// Cleanup
 	cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
@@ -483,5 +458,5 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 	free(iMatCpy);
 
 	free(vPrev);
-	freeMat2D(vSimMat, n_steps);
+	freeMat2D(vSimMat, n_steps - skipped_steps);
 }

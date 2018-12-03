@@ -96,7 +96,29 @@ bool matDiffCmp(float* mat1, float* mat2, int n, float tol) {
 	float diff;
 	for (int i = 0; i < n; i++) {
 		diff = fabs(mat1[i] - mat2[i]);
-		if (diff > tol) return false;
+		if (diff > tol || diff > (tol * mat2[i])) return false;
 	}
 	return true;
+}
+
+void mat2DtoCSV(char** labels, float** mat, int m, int n, char* filename) {
+	ofstream file;
+	file.open(filename);
+
+	file.precision(6);
+
+	for (int j = 0; j < n; j++) {
+		file << labels[j] << ", ";
+	}
+	file << "\n";
+
+	file << std::scientific;
+	for (int i = 0; i < m; i++) {
+		for (int j = 0; j < n; j++) {
+			file << mat[i][j] << ", ";
+		}
+		file << "\n";
+	}
+
+	file.close();
 }

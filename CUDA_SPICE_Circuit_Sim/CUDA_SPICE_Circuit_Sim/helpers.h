@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <string> 
 #include <sstream>
+#include<iostream> 
+#include<fstream>
 using namespace std;
 
 
@@ -24,3 +26,5 @@ void resetMat2D(float** mat, int m, int n);
 
 float maxDiff(float* mat1, float* mat2, int n);
 bool matDiffCmp(float* mat1, float* mat2, int n, float tol);
+
+void mat2DtoCSV(char** labels, float** mat, int m, int n, char* filename);

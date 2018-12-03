@@ -10,6 +10,6 @@ void op(Netlist* netlist);
 
 void cuda_op(Netlist* netlist);
 
-float** dcSweep(Netlist* netlist, char* name, float start, float stop, float step);
+void dcSweep(Netlist* netlist, char* name, float start, float stop, float step);
 
 void transient(Netlist* netlist, float start, float stop, float step);

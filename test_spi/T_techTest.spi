@@ -5,16 +5,15 @@
 *** Layout tech: mocmos, foundry MOSIS
 *** UC SPICE *** , MIN_RESIST 4.0, MIN_CAPAC 0.1FF
 * Model cards are described in this file:
-.include "C:\Users\Angelinia\Documents\ESE 370\Electric\22nm_HP.pm"
+.include "C:\Users\Angelinia\Documents\ESE 568\ami06.scs"
 
 .global gnd vdd
 
 *** TOP LEVEL CELL: Tran_T_test{sch}
-Ccap@0 gnd net@25 1f
-Mnmos@0 net@14 net@3 gnd gnd N L=0.044U W=0.044U
-Mnmos@1 net@25 net@14 gnd gnd N L=0.044U W=0.044U
-Mpmos@0 vdd net@3 net@14 vdd P L=0.044U W=0.044U
-Mpmos@1 vdd net@14 net@25 vdd P L=0.044U W=0.044U
-VVDC@0 vdd gnd DC 1V AC 0V 0
-VVPulse@0 net@3 gnd pulse (0 1V 0 0.2n 0.2n 20n 40n) DC 0V AC 0V 0
+Mnmos@0 net@14 net@3 gnd gnd ami06N L=0.6 W=1.5U
+Mnmos@1 net@25 net@14 gnd gnd ami06N L=0.6 W=1.5U
+Mpmos@0 vdd net@3 net@14 vdd ami06P L=0.6 W=1.5U
+Mpmos@1 vdd net@14 net@25 vdd ami06P L=0.6 W=1.5U
+VVDC@0 vdd gnd DC 5V AC 0V 0
+VVPulse@0 net@3 gnd pulse (0 5V 0 0.2n 0.2n 2n 4n) DC 0V AC 0V 0
 .END
