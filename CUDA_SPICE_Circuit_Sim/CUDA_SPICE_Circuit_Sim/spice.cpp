@@ -341,23 +341,39 @@ void parseCmd(char* line, Netlist* netlist, ifstream* file) {
 			token = strtok(line + 1, delim);
 			while (token != NULL) {
 				token = strlwr(token);
-				if (strcmp(token, "tox") == 0) {
+				if (strcmp(token, "toxe") == 0) {
+					cout << "Parameter: " << token << " = ";
+
 					token = strtok(NULL, delim);
 					M_ptr->tox = atof(token);
+
+					cout << std::scientific << M_ptr->tox << "\n";
 				}
-				else if (strcmp(token, "vth0")) {
+				else if (strcmp(token, "vth0") == 0) {
+					cout << "Parameter: " << token << " = ";
+
 					token = strtok(NULL, delim);
 					M_ptr->vt0 = atof(token);
+
+					cout << std::scientific << M_ptr->vt0 << "\n";
 				}
-				else if (strcmp(token, "u0")) {
+				else if (strcmp(token, "u0") == 0) {
+					cout << "Parameter: " << token << " = ";
+
 					token = strtok(NULL, delim);
 					M_ptr->u0 = atof(token);
+
+					cout << std::scientific << M_ptr->u0 << "\n";
 				}
-				else if (strcmp(token, "pclm")) {
+				else if (strcmp(token, "pclm") == 0) {
+					cout << "Parameter: " << token << " = ";
+
 					token = strtok(NULL, delim);
 					M_ptr->pclm = atof(token);
-				}
 
+					cout << std::scientific << M_ptr->pclm << "\n";
+				}
+				
 				token = strtok(NULL, delim);
 			}
 

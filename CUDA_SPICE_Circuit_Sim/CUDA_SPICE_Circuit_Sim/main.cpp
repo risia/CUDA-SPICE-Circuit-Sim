@@ -1,15 +1,21 @@
 #include "main.h"
+using namespace std::chrono;
 
-int main() {
+int main(int argc, char** argv) {
+	
+	if (argc < 2) {
+		printf("Usage: %s \"FILEPATH/NETLIST_FILE\"\n", argv[0]);
+		return 1;
+	}
 
-	using namespace std::chrono;
+	const char* file = argv[1];
 
 	steady_clock::time_point t1 = steady_clock::now();
 
 	Netlist* netlist = new Netlist();
 	//CUDA_Net* dev_net = new CUDA_Net();
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Bigger_test.spi";
+	//char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Bigger_test.spi";
 	parseNetlist(file, netlist);
 
 	steady_clock::time_point t2 = steady_clock::now();

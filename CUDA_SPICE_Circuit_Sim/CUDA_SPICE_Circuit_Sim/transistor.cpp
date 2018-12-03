@@ -144,6 +144,12 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 			if (n_d >= 0) gMat[n_s][n_d] -= g;
 		}
 	}
+}
+
+void MOSCaps_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n, float h) {
+	float L = T->params[0];
+	float W = T->params[1];
+
 
 
 }

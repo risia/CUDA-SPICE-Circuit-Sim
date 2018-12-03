@@ -36,6 +36,7 @@ struct Model {
 	float tox = 14.1e-9;
 	float vt0 = 0.7f;
 	float pclm = 0.6171774f; // CLM parameter
+	float ld = 0.0f; 
 };
 #endif // !1
 
