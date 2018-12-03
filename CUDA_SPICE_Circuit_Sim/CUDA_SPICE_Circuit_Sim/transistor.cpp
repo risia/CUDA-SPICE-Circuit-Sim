@@ -165,6 +165,7 @@ void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, fl
 	float Vd = 0.0f;
 	if (n_d >= 0) Vd = vGuess[n_d];
 
+
 	if ((Vs > Vd && T->model->type == 'n') || (Vs < Vd && T->model->type == 'p')) {
 		n_s = T->nodes[0] - 1;
 		Vs = 0.0f;
@@ -192,37 +193,22 @@ void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, fl
 		CLM = -CLM;
 	}
 
-	// Cgb
-	Element C;
-	C.nodes.push_back(T->nodes[1]);
-	C.nodes.push_back(T->nodes[3]);
-	C.params.push_back(T->model->CGBO * L);
-
-	C_toMat(&C, gMat, iMat, vPrev, h);
-
 	if ((Vd - Vs > Vov && T->model->type == 'n') || (Vd - Vs < Vov && T->model->type == 'p')) {
+
+		float Cgcs = (2.0/3.0) * Cox * 1e-4 * W * L;
+
+
+		Element Cg;
+		Cg.type = 'C';
+		Cg.nodes.push_back(n_g + 1);
+		Cg.nodes.push_back(n_s + 1);
+		Cg.params.push_back(Cgcs);
+
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
+
+
 		g = 0.5f * k * Vov;
 		I = g * (1 - CLM) * vth;
-
-		// Cgs
-		//float Cgcs = (2.0f * L * Cox * 1e4) / 3.0f;
-		float Cgs = W * T->model->CGSO; //W * (Cgcs + T->model->CGSO);
-
-		C.nodes[0] = T->nodes[1];
-		C.nodes[1] = T->nodes[2];
-		C.params[0] = Cgs;
-
-		C_toMat(&C, gMat, iMat, vPrev, h);
-
-		// Cgd
-		float Cgd = W * T->model->CGDO;
-
-		C.nodes[0] = T->nodes[1];
-		C.nodes[1] = T->nodes[0];
-		C.params[0] = Cgd;
-
-		C_toMat(&C, gMat, iMat, vPrev, h);
-
 
 		if (n_d >= 0) {
 			iMat[n_d] += I;
@@ -239,24 +225,23 @@ void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, fl
 	}
 	// "linear" region
 	else {
-		// Cgs
-		float Cgcs = 0.5f * L * Cox * 1e4;
-		float Cgs = W * T->model->CGSO; //W * (Cgcs + T->model->CGSO);
+		float ratio = (Vd - Vs) / Vov;
+		float Cgcs = (0.5f + ratio/6.0f) * Cox * 1e-4 * W * L;
+		float Cgcd = 0.5f * (1 - ratio) * Cox * 1e-4 * W * L;
 
-		C.nodes[0] = T->nodes[1];
-		C.nodes[1] = T->nodes[2];
-		C.params[0] = Cgs;
 
-		C_toMat(&C, gMat, iMat, vPrev, h);
+		Element Cg;
+		Cg.type = 'C';
+		Cg.nodes.push_back(n_g + 1);
+		Cg.nodes.push_back(n_s + 1);
+		Cg.params.push_back(Cgcs);
 
-		// Cgd
-		float Cgd = W * T->model->CGDO; //  W * (Cgcs + T->model->CGDO);
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
 
-		C.nodes[0] = T->nodes[1];
-		C.nodes[1] = T->nodes[0];
-		C.params[0] = Cgd;
+		Cg.nodes[1] = n_d + 1;
+		Cg.params[0] = Cgcd;
 
-		C_toMat(&C, gMat, iMat, vPrev, h);
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
 
 
 		g = k * Vov;

@@ -96,7 +96,7 @@ bool matDiffCmp(float* mat1, float* mat2, int n, float tol) {
 	float diff;
 	for (int i = 0; i < n; i++) {
 		diff = fabs(mat1[i] - mat2[i]);
-		if (diff > tol || diff > (tol * mat2[i])) return false;
+		if (diff > tol * mat2[i] ) return false; //|| diff > (tol * mat2[i])
 	}
 	return true;
 }

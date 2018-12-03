@@ -352,7 +352,6 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 
 		for (int i = 0; i < num_mos; i++) {
 			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
-			//transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
 		}
 		for (int i = 0; i < num_vdc; i++) {
 			VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
@@ -393,11 +392,13 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 		/*
 		Transistor convergence loop
 		*/
-		
+
 		n = 0;
 		isConverged = false;
 		if (num_mos == 0) isConverged = true;
 		while (!isConverged && n < 1000 && num_mos > 0) {
+
+
 			matCpy(vGuess, vMat, num_nodes);
 
 			resetMat2D(gMat, num_nodes, num_nodes);
@@ -407,8 +408,8 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 			linNetlistToMat(netlist, gMat, iMat);
 			tranJustCToMat(netlist, gMat, iMat, vPrev, step);
 			for (int i = 0; i < num_mos; i++) {
-				//transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
-				MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
+				transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
+				//MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
 			}
 			for (int i = 0; i < num_vdc; i++) {
 				VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
@@ -420,6 +421,9 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 
 			isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
 			n++;
+
+
+			//matCpy(vGuess, vMat, num_nodes);
 		}
 		/*
 		cout << "\nTime: " << time << " Final Solution:\n";

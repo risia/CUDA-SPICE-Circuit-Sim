@@ -195,6 +195,36 @@ int parseElement(char* line, Netlist* netlist) {
 		e.nodes.shrink_to_fit();
 		e.params.shrink_to_fit();
 		netlist->active_elem.push_back(e);
+
+
+		// Cgb0
+		if (fabs(e.model->CGBO) > 0.0f) {
+			Element C;
+			C.type = 'C';
+			C.nodes.push_back(e.nodes[1]);
+			C.nodes.push_back(e.nodes[3]);
+			C.params.push_back(e.model->CGBO * e.params[0]);
+			netlist->elements.push_back(C);
+		}
+		// Cgs0
+		if (fabs(e.model->CGSO) > 0.0f) {
+			Element C;
+			C.type = 'C';
+			C.nodes.push_back(e.nodes[1]);
+			C.nodes.push_back(e.nodes[2]);
+			C.params.push_back(e.model->CGSO * e.params[1]);
+			netlist->elements.push_back(C);
+		}
+		// Cgd0
+		if (fabs(e.model->CGDO) > 0.0f) {
+			Element C;
+			C.type = 'C';
+			C.nodes.push_back(e.nodes[1]);
+			C.nodes.push_back(e.nodes[0]);
+			C.params.push_back(e.model->CGDO * e.params[1]);
+			netlist->elements.push_back(C);
+		}
+
 		return 0;
 	}
 	else if (type == 'C') {
