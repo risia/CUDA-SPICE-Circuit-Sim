@@ -365,7 +365,8 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 		resetMat1D(vMat, num_nodes);
 
 		for (int i = 0; i < num_mos; i++) {
-			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+			//MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+			transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
 		}
 		for (int i = 0; i < num_vdc; i++) {
 			VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
@@ -420,10 +421,11 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 			linNetlistToMat(netlist, gMat, iMat);
 			tranJustCToMat(netlist, gMat, iMat, vPrev, step);
 			for (int i = 0; i < num_mos; i++) {
-				MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
+				transientMOS_toMat(mosList + i, gMat, iMat, vGuess, vPrev, num_nodes, step);
+				//MOS_toMat(mosList + i, gMat, iMat, vGuess, num_nodes);
 			}
 			for (int i = 0; i < num_vdc; i++) {
-				Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+				VTran_toMat(vdcList + i, gMat, iMat, vMat, time, num_nodes);
 			}
 
 			copyToDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
@@ -433,6 +435,13 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 			isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
 			n++;
 		}
+		/*
+		cout << "\nTime: " << time << " Final Solution:\n";
+		cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+		cout << "Converged? : " << (isConverged ? "true" : "false") << "after " << n << " iterations\n";
+		*/
+
+
 		// copy solution to output
 		if (t >= skipped_steps) {
 			vSimMat[t - skipped_steps][0] = time;
@@ -452,14 +461,14 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 	sweep_output.open("transient.txt");
 
 	string out = mat2DToStr(vSimMat, n_steps - skipped_steps, num_nodes + 1);
-	cout << "Transient Solutions:\n\n" << "Time(s)";
+	//cout << "Transient Solutions:\n\n" << "Time(s)";
 	sweep_output << "Time(s)";
 	for (int i = 1; i <= num_nodes; i++) {
 		sweep_output << " " << netlist->netNames[i];
-		cout << " " << netlist->netNames[i];
+		//cout << " " << netlist->netNames[i];
 	}
 	sweep_output << "\n" << out;
-	cout << "\n" << out;
+	//cout << "\n" << out;
 
 	sweep_output.close();
 

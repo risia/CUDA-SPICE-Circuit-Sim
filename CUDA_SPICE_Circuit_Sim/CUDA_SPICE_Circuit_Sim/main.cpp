@@ -82,13 +82,13 @@ int main(int argc, char** argv) {
 	/*
 	TEST: DC Sweep
 	*/
-	/*
-	float start = 0.0f;
-	float stop = 40e-9;
-	float step = 0.05e-9f;
+	
+	float start = 20.1e-9;
+	float stop = 20.2e-9;
+	float step = 0.005e-9f;
 
 	transient(netlist, start, stop, step);
-	*/
+	
 	free(netlist);
 	return 0;
 

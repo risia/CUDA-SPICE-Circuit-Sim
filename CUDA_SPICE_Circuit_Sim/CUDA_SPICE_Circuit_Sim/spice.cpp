@@ -373,6 +373,54 @@ void parseCmd(char* line, Netlist* netlist, ifstream* file) {
 
 					cout << std::scientific << M_ptr->pclm << "\n";
 				}
+				else if (strcmp(token, "vsat") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->vsat = atof(token);
+
+					cout << std::scientific << M_ptr->vsat << "\n";
+				}
+				else if (strcmp(token, "nfactor") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->nfactor = atof(token);
+
+					cout << std::scientific << M_ptr->nfactor << "\n";
+				}
+				else if (strcmp(token, "cgso") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->CGSO = atof(token);
+
+					cout << std::scientific << M_ptr->CGSO << "\n";
+				}
+				else if (strcmp(token, "cgdo") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->CGDO = atof(token);
+
+					cout << std::scientific << M_ptr->CGDO << "\n";
+				}
+				else if (strcmp(token, "cgbo") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->CGBO = atof(token);
+
+					cout << std::scientific << M_ptr->CGBO << "\n";
+				}
+				else if (strcmp(token, "epsrox") == 0) {
+					cout << "Parameter: " << token << " = ";
+
+					token = strtok(NULL, delim);
+					M_ptr->epsrox = atof(token);
+
+					cout << std::scientific << M_ptr->epsrox << "\n";
+				}
 				
 				token = strtok(NULL, delim);
 			}

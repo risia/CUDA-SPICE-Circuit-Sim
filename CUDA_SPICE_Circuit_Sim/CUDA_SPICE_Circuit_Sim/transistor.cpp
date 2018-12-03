@@ -95,7 +95,7 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 		return;
 	}
 
-	float k = (T->params[1] / T->params[0]) * T->model->u0 * (3.9f * PERMITTIVITY / (T->model->tox * 100.f));
+	float k = (T->params[1] / T->params[0]) * T->model->u0 * (T->model->epsrox * PERMITTIVITY / (T->model->tox * 100.f));
 	
 
 	float Vov = Vg - Vs - vth;
@@ -146,10 +146,147 @@ void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {
 	}
 }
 
-void MOSCaps_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n, float h) {
+
+void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, float* vPrev, int n, float h) {
+	float I;
+	float g;
+
+	int n_d = T->nodes[0] - 1;
+	int n_g = T->nodes[1] - 1;
+	int n_s = T->nodes[2] - 1;
+	int n_b = T->nodes[3] - 1;
+
+	// Load guessed node voltages
+	float Vg = 0.0f;
+	if (n_g >= 0) Vg = vGuess[n_g];
+	float Vs = 0.0f;
+	if (n_s >= 0) Vs = vGuess[n_s];
+	float Vd = 0.0f;
+	if (n_d >= 0) Vd = vGuess[n_d];
+
+	if ((Vs > Vd && T->model->type == 'n') || (Vs < Vd && T->model->type == 'p')) {
+		n_s = T->nodes[0] - 1;
+		Vs = 0.0f;
+		if (n_s >= 0) Vs = vGuess[n_s];
+
+		n_d = T->nodes[2] - 1;
+		Vd = 0.0f;
+		if (n_d >= 0) Vd = vGuess[n_d];
+	}
+
+	float vth = T->model->vt0;
+	if (Vg - Vs <= vth && T->model->type == 'n') return;
+	if (Vg - Vs >= vth && T->model->type == 'p') return;
+
 	float L = T->params[0];
 	float W = T->params[1];
+	float Cox = (T->model->epsrox * PERMITTIVITY / (T->model->tox * 100.f));
 
+	float k = (W / L) * T->model->u0 * Cox;
+	float Vov = Vg - Vs - vth;
+	float CLM = T->model->pclm * Vov;
 
+	if (T->model->type == 'p') {
+		k = -k;
+		CLM = -CLM;
+	}
+
+	// saturation region
+	if ((Vd - Vs > Vov && T->model->type == 'n') || (Vd - Vs < Vov && T->model->type == 'p')) {
+		g = 0.5f * k * Vov;
+		I = g * (1 - CLM) * vth;
+
+		// Cgs
+		float Cgcs = (2.0f * L * Cox) / 3.0f;
+		float Ggs = W * (Cgcs + T->model->CGSO) / h;
+		// Cgd
+		float Ggd = W * T->model->CGDO / h;
+
+		if (n_g >= 0) {
+			gMat[n_g][n_g] += Ggs + Ggd;
+			iMat[n_g] += (Ggs + Ggd) * vPrev[n_g];
+		}
+
+		if (n_d >= 0) {
+			iMat[n_d] += I;
+			gMat[n_d][n_d] += g * CLM;
+			if (n_g >= 0) {
+				gMat[n_d][n_g] += g * (1 - CLM) - Ggd;
+				gMat[n_g][n_d] -= Ggd;
+				iMat[n_g] -= Ggd * vPrev[n_d];
+				iMat[n_d] -= Ggd * vPrev[n_g];
+			}
+			if (n_s >= 0) gMat[n_d][n_s] -= g;
+		}
+		if (n_s >= 0) {
+			iMat[n_s] -= I;
+			gMat[n_s][n_s] += g;
+			if (n_g >= 0) {
+				gMat[n_s][n_g] -= g * (1 - CLM) + Ggs;
+				gMat[n_g][n_s] -= Ggs;
+				iMat[n_g] -= Ggs * vPrev[n_s];
+				iMat[n_s] -= Ggs * vPrev[n_g];
+			}
+			if (n_d >= 0) gMat[n_s][n_d] -= g * CLM;
+		}
+	}
+	// "linear" region
+	else {
+		g = k * Vov;
+		I = k * 0.5 * (Vd - Vs) * (Vd - Vs);
+
+		// Cgs
+		float Cgcs = 0.5 * L * Cox;
+		float Ggs = W * (Cgcs + T->model->CGSO) / h;
+		// Cgd
+		float Ggd = W * (Cgcs + T->model->CGDO) / h;
+
+		if (n_g >= 0) {
+			gMat[n_g][n_g] += Ggs + Ggd;
+			iMat[n_g] += (Ggs + Ggd) * vPrev[n_g];
+			if (n_d >= 0) {
+				gMat[n_g][n_d] -= Ggd;
+				gMat[n_d][n_g] -= Ggd;
+				iMat[n_g] -= Ggd * vPrev[n_d];
+				iMat[n_d] -= Ggd * vPrev[n_g];
+			}
+			if (n_s >= 0) {
+				gMat[n_g][n_s] -= Ggs;
+				gMat[n_s][n_g] -= Ggs;
+				iMat[n_g] -= Ggs * vPrev[n_s];
+				iMat[n_s] -= Ggs * vPrev[n_g];
+			}
+		}
+
+		if (n_d >= 0) {
+			gMat[n_d][n_d] += g + Ggd;
+			iMat[n_d] += I + (Ggd * vPrev[n_d]);
+			if (n_s >= 0) gMat[n_d][n_s] -= g;
+		}
+		if (n_s >= 0) {
+			gMat[n_s][n_s] += g + Ggs;
+			iMat[n_s] += Ggs * vPrev[n_s] - I;
+			if (n_d >= 0) gMat[n_s][n_d] -= g;
+		}
+	}
+
+	// Cgb
+	float Ggb = L * T->model->CGBO / h;
+	if (Ggb == 0.0f) return;
+
+	if (n_g >= 0) {
+		gMat[n_g][n_g] += Ggb;
+		iMat[n_g] += Ggb * vPrev[n_g];
+	}
+	if (n_b >= 0) {
+		gMat[n_b][n_b] += Ggb;
+		iMat[n_b] += Ggb * vPrev[n_b];
+	}
+	if (n_b >= 0 && n_g >= 0) {
+		gMat[n_g][n_b] -= Ggb;
+		gMat[n_b][n_g] -= Ggb;
+		iMat[n_g] -= Ggb * vPrev[n_b];
+		iMat[n_b] -= Ggb * vPrev[n_g];
+	}
 
 }
