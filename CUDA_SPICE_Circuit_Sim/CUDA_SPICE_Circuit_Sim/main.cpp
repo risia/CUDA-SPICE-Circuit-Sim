@@ -9,7 +9,7 @@ int main() {
 	Netlist* netlist = new Netlist();
 	//CUDA_Net* dev_net = new CUDA_Net();
 
-	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/C_test.spi";
+	char* file = "C:/Users/Angelinia/Documents/CIS 565/CUDA-SPICE-Circuit-Sim/test_spi/Bigger_test.spi";
 	parseNetlist(file, netlist);
 
 	steady_clock::time_point t2 = steady_clock::now();
@@ -76,12 +76,13 @@ int main() {
 	/*
 	TEST: DC Sweep
 	*/
-	float start = 7e-9;
-	float stop = 12e-9;
+	/*
+	float start = 0.0f;
+	float stop = 40e-9;
 	float step = 0.05e-9f;
 
 	transient(netlist, start, stop, step);
-
+	*/
 	free(netlist);
 	return 0;
 

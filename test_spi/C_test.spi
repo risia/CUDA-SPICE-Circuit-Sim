@@ -10,7 +10,7 @@
 .global gnd
 
 *** TOP LEVEL CELL: C_test{sch}
-Ccap@0 gnd net@1 0.1
-Rres@0 net@1 net@4 100
-VVPulse@0 net@4 gnd pulse (0 1V 0n 200p 200p 3n 6n) DC 0V AC 0V 0
+Ccap@0 gnd net@1 1p
+Rres@0 net@1 net@4 1k
+VVPulse@0 net@4 gnd pulse (0 1V 0n 200p 200p 10n 20n) DC 0V AC 0V 0
 .END

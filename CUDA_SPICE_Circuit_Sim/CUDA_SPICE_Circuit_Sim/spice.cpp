@@ -1,6 +1,6 @@
 #include "spice.h"
 
-int parseNetlist(char* filepath, Netlist* netlist) {
+int parseNetlist(const char* filepath, Netlist* netlist) {
 
 	ifstream inFile(filepath);
 	char line[MAX_LINE];
@@ -36,11 +36,12 @@ int parseNetlist(char* filepath, Netlist* netlist) {
 		inFile.getline(line, MAX_LINE);
 		// Skip comments and empty lines
 		if (line[0] == '*' || line[0] == '\0') continue;
-
+		if (line[0] == '.') {
+			cout << line << endl;
+			parseCmd(line, netlist, &inFile);
+		}
 		// Parse elements
-		if (line[0] != '.') parseElement(line, netlist);
-		// Print commands for testing for now, we'll parse later
-		else cout << line << endl;
+		else parseElement(line, netlist);
 	}
 
 	inFile.close();
@@ -284,5 +285,89 @@ float numPrefix(float num, char prefix) {
 		// default is do nothing, return original value
 		default:
 			return num;
+	}
+}
+
+
+
+void parseCmd(char* line, Netlist* netlist, ifstream* file) {
+	char* token;
+
+	// make copy of line,
+	// because strtok corrupt data
+	char copy[MAX_LINE];
+	strcpy(copy, line);
+
+	char* delim = " ()=";
+
+	token = strlwr(strtok(line + 1, delim));
+
+	// parse includes file
+	if (strcmp(token, "include") == 0) {
+		token = strtok(copy + 9, "\"\'");
+		cout << "Filestring: " << token << "\n";
+		parseNetlist(token, netlist);
+	}
+
+	// The glorious model file
+	else if (strcmp(token, "model") == 0) {
+		Model* M_ptr = new Model();
+		netlist->modelList.push_back(M_ptr);
+		// format:
+		// .model name type level parameters...
+		// '+' indicates continuation onto next line
+
+		// NAME
+		token = strtok(NULL, delim);
+		M_ptr->name = new char[strlen(token) + 1];
+		strcpy(M_ptr->name, token);
+
+		// TYPE
+		token = strlwr(strtok(NULL, delim));
+		if (strcmp(token, "nmos") == 0) M_ptr->type = 'n';
+		else if (strcmp(token, "pmos") == 0) M_ptr->type = 'p';
+
+		float val;
+		char peek = file->peek();
+
+		while (peek == '\n' && file) {
+			file->getline(line, MAX_LINE);
+			peek = file->peek();
+		}
+
+		while (peek == '+') {
+			file->getline(line, MAX_LINE);
+			// parse parameters
+			token = strtok(line + 1, delim);
+			while (token != NULL) {
+				token = strlwr(token);
+				if (strcmp(token, "tox") == 0) {
+					token = strtok(NULL, delim);
+					M_ptr->tox = atof(token);
+				}
+				else if (strcmp(token, "vth0")) {
+					token = strtok(NULL, delim);
+					M_ptr->vt0 = atof(token);
+				}
+				else if (strcmp(token, "u0")) {
+					token = strtok(NULL, delim);
+					M_ptr->u0 = atof(token);
+				}
+				else if (strcmp(token, "pclm")) {
+					token = strtok(NULL, delim);
+					M_ptr->pclm = atof(token);
+				}
+
+				token = strtok(NULL, delim);
+			}
+
+			// check next line;
+			peek = file->peek();
+
+			while (peek == '\n' && file) {
+				file->getline(line, MAX_LINE);
+				peek = file->peek();
+			}
+		}
 	}
 }

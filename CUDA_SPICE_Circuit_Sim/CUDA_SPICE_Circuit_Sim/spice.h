@@ -116,12 +116,15 @@ struct Netlist {
 };
 
 
-int parseNetlist(char* filepath, Netlist* netlist);
+int parseNetlist(const char* filepath, Netlist* netlist);
 
 void parseNodes(int n, Netlist* netlist, Element* e, char* delim);
 void parseValues(int n, int skip, Netlist* netlist, Element* e, char* delim);
 
 int parseElement(char* line, Netlist* netlist);
+
 int findNode(vector<char*> &nodeList, char* name, int n);
 Model* findModel(vector<Model*> &modelList, char* name, int n);
 float numPrefix(float num, char prefix);
+
+void parseCmd(char* line, Netlist* netlist, ifstream* file);
