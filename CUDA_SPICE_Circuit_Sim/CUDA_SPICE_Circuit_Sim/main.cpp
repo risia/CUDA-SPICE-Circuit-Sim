@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
 	*/
 	
 	float start = 0;
-	float stop = 20e-9;
-	float step = 0.05e-9f;
+	float stop = 10e-9;
+	float step = 0.001e-9f;
 
 	transient(netlist, start, stop, step);
 

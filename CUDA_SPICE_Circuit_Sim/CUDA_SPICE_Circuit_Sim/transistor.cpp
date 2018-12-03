@@ -176,13 +176,40 @@ void transientMOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, fl
 		if (n_d >= 0) Vd = vGuess[n_d];
 	}
 
-	float vth = T->model->vt0;
-	if (Vg - Vs <= vth && T->model->type == 'n') return;
-	if (Vg - Vs >= vth && T->model->type == 'p') return;
 
 	float L = T->params[0];
 	float W = T->params[1];
 	float Cox = (T->model->epsrox * PERMITTIVITY / (T->model->tox * 100.f));
+
+	float Cgcb = Cox * 1e-4 * W * L;
+
+	float vth = T->model->vt0;
+	if (Vg - Vs <= vth && T->model->type == 'n') {
+
+		Element Cg;
+		Cg.type = 'C';
+		Cg.nodes.push_back(n_g + 1);
+		Cg.nodes.push_back(n_b + 1);
+		Cg.params.push_back(Cgcb);
+
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
+
+		return;
+
+	}
+	if (Vg - Vs >= vth && T->model->type == 'p') {
+
+		Element Cg;
+		Cg.type = 'C';
+		Cg.nodes.push_back(n_g + 1);
+		Cg.nodes.push_back(n_b + 1);
+		Cg.params.push_back(Cgcb);
+
+		C_toMat(&Cg, gMat, iMat, vPrev, h);
+
+		return;
+	}
+
 
 	float k = (W / L) * T->model->u0 * Cox;
 	float Vov = Vg - Vs - vth;
