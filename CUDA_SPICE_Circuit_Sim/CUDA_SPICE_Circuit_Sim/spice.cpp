@@ -181,6 +181,8 @@ int parseElement(char* line, Netlist* netlist) {
 		token = strtok(NULL, delim);
 		e.model = findModel(netlist->modelList, token, netlist->modelList.size());
 
+		cout << "Transistor " << e.name << " model: " << e.model->name << "\n";
+
 		// If null may need to throw error. For now:
 		if (e.model == NULL) {
 			e.model = netlist->modelList[0]; // default model

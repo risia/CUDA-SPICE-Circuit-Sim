@@ -1,5 +1,6 @@
 #pragma once
 #include "spice.h"
+#include "kcl.h"
 
 #define PERMITTIVITY  8.854187817e-14
 

@@ -10,6 +10,7 @@
 .global gnd vdd
 
 *** TOP LEVEL CELL: Tran_T_test{sch}
+Ccap@0 net@14 net@25 1f
 Mnmos@0 net@14 net@3 gnd gnd ami06N L=0.6 W=1.5U
 Mnmos@1 net@25 net@14 gnd gnd ami06N L=0.6 W=1.5U
 Mpmos@0 vdd net@3 net@14 vdd ami06P L=0.6 W=1.5U
