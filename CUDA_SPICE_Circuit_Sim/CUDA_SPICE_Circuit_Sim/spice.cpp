@@ -103,9 +103,6 @@ int parseElement(char* line, Netlist* netlist) {
 	Element e;
 	e.type = type;
 
-	float val;
-	int node;
-
 	// Common Parameters beginning Line
 	// get name
 	token = strtok(line + 1, delim);

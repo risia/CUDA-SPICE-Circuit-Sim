@@ -1,4 +1,4 @@
-data = csvread("transient.csv", 1, 0);
+data = csvread("dcSweep.csv", 1, 0);
 x = data(:,1);
 v1 = data(:,2);
 v2 = data(:,3);

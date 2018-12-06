@@ -105,7 +105,7 @@ void gpuElementCpy(int n, Element* elemList, CUDA_Elem* dev_elemList, Model** mo
 	int numBlocks = ceil(float(n) / 64.0f);
 
 	dim3 numBlocks3D = dim3(numBlocks, 1, 1);
-	dim3 blockSize = dim3(64.0f, 1, 1);
+	dim3 blockSize = dim3(64, 1, 1);
 
 	kernElementPointers << < numBlocks3D, blockSize >> >(n, dev_elemList, dev_nodeLists, dev_paramLists, dev_modelIdxs, dev_types);
 	checkCUDAError("Element Arrays Pointer Copy Failure!\n");
@@ -126,59 +126,56 @@ void gpuNetlist(Netlist* netlist, CUDA_Net* dev_net) {
 	dev_net->vdcList = NULL;
 	dev_net->modelList = NULL;
 
+	
+	// Alloc. node and paramerter lists in element first,
+	// construct element
+	// copy to gpu array
+	// set dev_net pointers
+
+	dev_net->n_active = netlist->active_elem.size();
 	dev_net->n_nodes = netlist->netNames.size() - 1;
+	dev_net->n_passive = netlist->elements.size();
+	dev_net->n_vdc = netlist->vdcList.size();
 
-	CUDA_Elem* dev_passives;
-	int n_passive = netlist->elements.size();
-	dev_net->n_passive = n_passive;
-	if (n_passive > 0) {
-		// allocate passive elements
-		cudaMalloc((void**)&dev_passives, n_passive * sizeof(CUDA_Elem));
-		checkCUDAError("Passive Malloc Failure!\n");
+	CUDA_Elem e;
+	int e_nodes;
+	int e_params;
+	int* dev_nodes = NULL;
+	float* dev_params = NULL;
 
-		// copy over elements
-		gpuElementCpy(n_passive, netlist->elements.data(), dev_passives, NULL, 0);
-		checkCUDAError("Passive Copy Failure!\n");
+	e.model = 0;
+
+	CUDA_Elem* dev_passives = NULL;
+
+	// Passive element list allocation
+	
+	cudaMalloc((void**)&dev_passives, dev_net->n_passive * sizeof(CUDA_Elem));
+	dev_net->passives = dev_passives;
+
+	for (int i = 0; i < dev_net->n_passive; i++) {
+		// Get array sizes
+		e_nodes = netlist->elements[i].nodes.size();
+		e_params = netlist->elements[i].params.size();
+
+		// Allocate device element's node and parameter lists
+		cudaMalloc((void**)&dev_nodes, e_nodes * sizeof(int));
+		cudaMalloc((void**)&dev_params, e_params * sizeof(float));
+
+		// Copy arrays to GPU
+		cudaMemcpy(dev_nodes, netlist->elements[i].nodes.data(), e_nodes * sizeof(int), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element nodelist copy fail!\n");
+		cudaMemcpy(dev_params, netlist->elements[i].params.data(), e_params * sizeof(float), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element parameter list copy fail!\n");
+
+		// Set eleement values
+		e.nodes = dev_nodes;
+		e.params = dev_params;
+		e.type = netlist->elements[i].type;
+
+		// Copy element struct to device
+		cudaMemcpy(dev_passives + i, &e, sizeof(CUDA_Elem), cudaMemcpyHostToDevice);
 	}
-
-	int n_vdc = netlist->vdcList.size();
-	dev_net->n_vdc = n_vdc;
-	if (n_vdc > 0) {
-		// allocate vdcs
-		cudaMalloc((void**)&(dev_net->vdcList), n_vdc * sizeof(CUDA_Elem));
-		checkCUDAError("VDC Malloc Failure!\n");
-
-		// copy over vdc elements
-		gpuElementCpy(n_vdc, netlist->vdcList.data(), dev_net->vdcList, NULL, 0);
-		checkCUDAError("VDC Copy Failure!\n");
-	}
-
-	int n_models = netlist->modelList.size();
-	int n_active = netlist->active_elem.size();
-	dev_net->n_active = n_active;
-	if (n_active > 0) {
-		// allocate mosfets
-		cudaMalloc((void**)&(dev_net->actives), n_active * sizeof(CUDA_Elem));
-		checkCUDAError("MOSFET Malloc Failure!\n");
-
-		// copy over
-		gpuElementCpy(n_active, netlist->active_elem.data(), dev_net->actives, netlist->modelList.data(), n_models);
-		checkCUDAError("MOSFET Copy Failure!\n");
-	}
-	if (n_models > 0) {
-		// allocate models
-		cudaMalloc((void**)&(dev_net->modelList), n_models * sizeof(Model));
-		checkCUDAError("Model Malloc Failure!\n");
-
-		// copy models
-		Model** M_ptrs = netlist->modelList.data();
-
-		//for (int i = 0; i < n_models; i++) {
-			cudaMemcpy(dev_net->modelList, M_ptrs[0], sizeof(Model), cudaMemcpyHostToDevice);
-		//}
-		
-		checkCUDAError("Model Copy Failure!\n");
-	}
+	
 }
 
 // Probably should figure out how to ensure all arrays in

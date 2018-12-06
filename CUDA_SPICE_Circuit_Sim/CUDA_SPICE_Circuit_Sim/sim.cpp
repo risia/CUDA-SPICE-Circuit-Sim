@@ -156,6 +156,11 @@ void cuda_op(Netlist* netlist) {
 
 	copyFromDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, NULL, NULL);
 
+
+
+	// Test Output
+	cout << "TEST: Original Passive G Matrix\n" << mat2DToStr(gMatCpy, num_nodes, num_nodes);
+
 	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);

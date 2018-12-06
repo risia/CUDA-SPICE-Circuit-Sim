@@ -106,6 +106,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_50,sm_50</CodeGeneration>
+      <GenerateLineInfo>false</GenerateLineInfo>
+      <GPUDebugInfo>true</GPUDebugInfo>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -172,6 +174,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   <ItemGroup>
     <CudaCompile Include="cuda_kcl.cu">
       <FileType>CppCode</FileType>
+      <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GPUDebugInfo>
+      <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_50,sm_50</CodeGeneration>
     </CudaCompile>
     <ClCompile Include="sim.cpp" />
     <ClCompile Include="transistor.cpp" />
