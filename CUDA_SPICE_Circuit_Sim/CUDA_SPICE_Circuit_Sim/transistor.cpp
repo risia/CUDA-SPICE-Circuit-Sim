@@ -1,7 +1,7 @@
 #include "transistor.h"
 
 // WIP
-
+/*
 // guessed voltage matrix vMat as input
 // calcId calculates current of a transistor for given v matrix for testing
 float calcId(Element* T, float* vMat) {
@@ -55,6 +55,7 @@ float calcId(Element* T, float* vMat) {
 
 	return Id;
 }
+*/
 
 // Vmat should be most recent guesses, gMat and iMat restored to passive elements
 void MOS_toMat(Element* T, float** gMat, float* iMat, float* vGuess, int n) {

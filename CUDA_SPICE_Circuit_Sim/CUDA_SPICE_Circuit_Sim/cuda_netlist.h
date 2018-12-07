@@ -9,10 +9,19 @@ struct Model {
 	char* name = "N";
 	char type = 'n';
 
-	float u0 = 540.0f;
-	float tox = 14.1e-9;
-	float vt0 = 0.7f;
+	float u0 = 540.0f; // 
+	float tox = 14.1e-9; // oxide thickness
+	float epsrox = 3.9f; // dielectric constant
+
+	float vt0 = 0.7f; // threshold voltage
 	float pclm = 0.6171774f; // CLM parameter
+	float vsat = 8.0e4; // saturation velocity
+	float nfactor = 1.0f; // subthreshold swing factor
+						  //float Ld = 0.0f;
+
+	float CGSO = 0.0f; // gate-source overlap cap per unit W
+	float CGDO = 0.0f; // gate-drain overlap cap per unit W
+	float CGBO = 0.0f; // gate-bulk cap per unit L
 };
 #endif // !1
 

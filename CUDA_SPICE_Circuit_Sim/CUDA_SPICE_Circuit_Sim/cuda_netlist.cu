@@ -145,6 +145,7 @@ void gpuNetlist(Netlist* netlist, CUDA_Net* dev_net) {
 	for (int i = 0; i < n_models; i++) {
 		cudaMemcpy(dev_models + i, netlist->modelList[i], sizeof(Model), cudaMemcpyHostToDevice);
 	}
+	dev_net->modelList = dev_models;
 
 	CUDA_Elem e;
 	int e_nodes;

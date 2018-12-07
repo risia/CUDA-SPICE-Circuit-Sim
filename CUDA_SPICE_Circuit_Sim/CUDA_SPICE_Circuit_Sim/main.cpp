@@ -22,6 +22,14 @@ int main(int argc, char** argv) {
 	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "Netlist parser took " << time_span.count() << " seconds.\n";
 
+	cuda_op(netlist);
+
+
+	t1 = steady_clock::now();
+	op(netlist);
+	t2 = steady_clock::now();
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "Unoptimized OP Solver took " << time_span.count() << " seconds.\n";
 
 	t1 = steady_clock::now();
 	cuda_op(netlist);
@@ -36,7 +44,7 @@ int main(int argc, char** argv) {
 	
 	float start = 0;
 	float stop = 5e-9;
-	float step = 0.001e-9f;
+	float step = 0.01e-9f;
 
 	//transient(netlist, start, stop, step);
 
@@ -73,7 +81,11 @@ int main(int argc, char** argv) {
 	freeMat2D(gMat, n);
 	*/
 
+	t1 = steady_clock::now();
 	full_cudaOp(netlist, dev_net);
+	t2 = steady_clock::now();
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "Full CUDA OP Solver took " << time_span.count() << " seconds.\n";
 	
 	free(netlist);
 	free(dev_net);
