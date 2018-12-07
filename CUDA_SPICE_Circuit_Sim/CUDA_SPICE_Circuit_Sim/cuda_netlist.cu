@@ -137,6 +137,15 @@ void gpuNetlist(Netlist* netlist, CUDA_Net* dev_net) {
 	dev_net->n_passive = netlist->elements.size();
 	dev_net->n_vdc = netlist->vdcList.size();
 
+	int n_models = netlist->modelList.size();
+
+	// Allocate models
+	Model* dev_models;
+	cudaMalloc((void**)&dev_models, n_models * sizeof(Model));
+	for (int i = 0; i < n_models; i++) {
+		cudaMemcpy(dev_models + i, netlist->modelList[i], sizeof(Model), cudaMemcpyHostToDevice);
+	}
+
 	CUDA_Elem e;
 	int e_nodes;
 	int e_params;
@@ -167,7 +176,7 @@ void gpuNetlist(Netlist* netlist, CUDA_Net* dev_net) {
 		cudaMemcpy(dev_params, netlist->elements[i].params.data(), e_params * sizeof(float), cudaMemcpyHostToDevice);
 		checkCUDAError("Device element parameter list copy fail!\n");
 
-		// Set eleement values
+		// Set element values
 		e.nodes = dev_nodes;
 		e.params = dev_params;
 		e.type = netlist->elements[i].type;
@@ -175,6 +184,70 @@ void gpuNetlist(Netlist* netlist, CUDA_Net* dev_net) {
 		// Copy element struct to device
 		cudaMemcpy(dev_passives + i, &e, sizeof(CUDA_Elem), cudaMemcpyHostToDevice);
 	}
+
+	// VDC allocation
+
+	CUDA_Elem* dev_v = NULL;
+	cudaMalloc((void**)&dev_v, dev_net->n_vdc * sizeof(CUDA_Elem));
+	dev_net->vdcList = dev_v;
+
+	for (int i = 0; i < dev_net->n_vdc; i++) {
+		// Get array sizes
+		e_nodes = netlist->vdcList[i].nodes.size();
+		e_params = netlist->vdcList[i].params.size();
+
+		// Allocate device element's node and parameter lists
+		cudaMalloc((void**)&dev_nodes, e_nodes * sizeof(int));
+		cudaMalloc((void**)&dev_params, e_params * sizeof(float));
+
+		// Copy arrays to GPU
+		cudaMemcpy(dev_nodes, netlist->vdcList[i].nodes.data(), e_nodes * sizeof(int), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element nodelist copy fail!\n");
+		cudaMemcpy(dev_params, netlist->vdcList[i].params.data(), e_params * sizeof(float), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element parameter list copy fail!\n");
+
+		// Set element values
+		e.nodes = dev_nodes;
+		e.params = dev_params;
+		e.type = netlist->vdcList[i].type;
+
+		// Copy element struct to device
+		cudaMemcpy(dev_v + i, &e, sizeof(CUDA_Elem), cudaMemcpyHostToDevice);
+	}
+
+
+	// Transistor Allocation
+
+	CUDA_Elem* dev_actives = NULL;
+	cudaMalloc((void**)&dev_actives, dev_net->n_active * sizeof(CUDA_Elem));
+	dev_net->actives = dev_actives;
+
+	for (int i = 0; i < dev_net->n_active; i++) {
+		// Get array sizes
+		e_nodes = netlist->active_elem[i].nodes.size();
+		e_params = netlist->active_elem[i].params.size();
+
+		// Allocate device element's node and parameter lists
+		cudaMalloc((void**)&dev_nodes, e_nodes * sizeof(int));
+		cudaMalloc((void**)&dev_params, e_params * sizeof(float));
+
+		// Copy arrays to GPU
+		cudaMemcpy(dev_nodes, netlist->active_elem[i].nodes.data(), e_nodes * sizeof(int), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element nodelist copy fail!\n");
+		cudaMemcpy(dev_params, netlist->active_elem[i].params.data(), e_params * sizeof(float), cudaMemcpyHostToDevice);
+		checkCUDAError("Device element parameter list copy fail!\n");
+
+		// Set element values
+		e.nodes = dev_nodes;
+		e.params = dev_params;
+		e.type = netlist->active_elem[i].type;
+
+		e.model = findModelN(netlist->modelList.data(), netlist->active_elem[i].model->name, n_models);
+
+		// Copy element struct to device
+		cudaMemcpy(dev_actives + i, &e, sizeof(CUDA_Elem), cudaMemcpyHostToDevice);
+	}
+
 	
 }
 

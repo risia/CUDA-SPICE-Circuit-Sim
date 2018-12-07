@@ -50,24 +50,30 @@ int main(int argc, char** argv) {
 	//dcSweep(netlist, name, start, stop, step);
 
 
-	cout << "\n*******************\n" << "CUDA Netlist Test" << "\n*******************\n";
+	//cout << "\n*******************\n" << "CUDA Netlist Test" << "\n*******************\n";
 
 	CUDA_Net* dev_net = new CUDA_Net();
 
 	gpuNetlist(netlist, dev_net);
 
+	/*
 	int n = dev_net->n_nodes;
 
 	float** gMat = mat2D(n, n);
 	float* iMat = mat1D(n);
+	float* vMat = mat1D(n);
 
-	gpuNetlistToMat(dev_net, gMat, iMat);
+	gpuNetlistToMat(dev_net, netlist, gMat, iMat, vMat);
 
-	cout << mat2DToStr(gMat, n, n);
+	cout << mat2DToStr(gMat, n, n) << "\n" << mat1DToStr(iMat, n) << "\n" << mat1DToStr(vMat, n);
+
 
 	free(iMat);
+	free(vMat);
 	freeMat2D(gMat, n);
+	*/
 
+	full_cudaOp(netlist, dev_net);
 	
 	free(netlist);
 	free(dev_net);

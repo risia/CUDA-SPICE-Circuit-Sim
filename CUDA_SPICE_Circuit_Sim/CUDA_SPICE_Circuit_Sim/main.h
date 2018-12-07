@@ -7,3 +7,4 @@
 #include <ratio>
 #include <chrono>
 #include "sim.h"
+#include "cuda_sim.h"

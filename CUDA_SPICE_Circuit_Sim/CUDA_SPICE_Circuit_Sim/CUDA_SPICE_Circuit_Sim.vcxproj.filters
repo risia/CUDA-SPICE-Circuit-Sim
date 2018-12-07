@@ -5,6 +5,7 @@
     <CudaCompile Include="cuda_setup.cu" />
     <CudaCompile Include="cuda_kcl.cu" />
     <CudaCompile Include="cuda_netlist.cu" />
+    <CudaCompile Include="cuda_sim.cu" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="parse">
@@ -41,5 +42,6 @@
     <ClInclude Include="sim.h" />
     <ClInclude Include="cuda_kcl.h" />
     <ClInclude Include="cuda_netlist.h" />
+    <ClInclude Include="cuda_sim.h" />
   </ItemGroup>
 </Project>
