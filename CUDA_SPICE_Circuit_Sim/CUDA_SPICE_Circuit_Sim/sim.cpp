@@ -27,6 +27,8 @@ void op(Netlist* netlist) {
 
 	gpuMatSolve(num_nodes, gMat, iMat, vMat);
 
+
+
 	// Max error between current and previous guess
 	bool isConverged = false;
 	if (num_mos == 0) isConverged = true;
@@ -154,7 +156,7 @@ void cuda_op(Netlist* netlist) {
 		n++;
 	}
 
-	copyFromDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, NULL, NULL);
+	copyFromDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
 
 
 
