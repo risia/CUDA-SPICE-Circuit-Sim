@@ -5,7 +5,7 @@
 #include "transistor.h"
 
 
-#define BS_1D 64
+#define BS_1D (64)
 
 __global__ void kernDCPassiveMat(int n, int n_nodes, CUDA_Elem* passives, float* gMat, float* iMat);
 __global__ void kernVDCtoMat(int n_v, int n_nodes, CUDA_Elem* elems, float* gMat, float* iMat, float* vMat);

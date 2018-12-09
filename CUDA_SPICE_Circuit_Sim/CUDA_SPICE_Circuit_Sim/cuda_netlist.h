@@ -27,6 +27,9 @@ struct Model {
 
 struct CUDA_Elem {
 	char type;
+
+	char* name;
+
 	int* nodes;
 	float* params;
 	int model; // model index if transistor

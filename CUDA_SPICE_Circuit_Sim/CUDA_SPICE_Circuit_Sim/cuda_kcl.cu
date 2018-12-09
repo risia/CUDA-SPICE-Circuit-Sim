@@ -348,8 +348,9 @@ void gpuNetlistToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float
 
 	int n_active = dev_net->n_active;
 	if (n_active > 0) {
-
+		numBlocks = ceil(float(n_active) / float(BS_1D));
 		kernelMOStoMat<<<numBlocks, BS_1D>>>(n_active, n, dev_net->actives, dev_net->modelList, dev_gMat, dev_iMat, dev_vGuess);
+		checkCUDAError("MOS Matrix Kernel Failure!\n");
 	}
 
 
@@ -367,10 +368,18 @@ void gpuNetlistToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float
 		for (int i = 0; i < n_vdc; i++) {
 			n_p = netlist->vdcList[i].nodes[0] - 1;
 			n_n = netlist->vdcList[i].nodes[1] - 1;
-			if (n_p >= 0 && n_n >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, dev_gMat + n * n_n, dev_gMat + n * n_p, dev_iMat + n_n, dev_iMat + n_p);
-			else if (n_p >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_p, NULL, dev_iMat + n_p);
-			else if (n_n >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_n, NULL, dev_iMat + n_n);
-			checkCUDAError("vdc setup failed!");
+			if (n_p >= 0 && n_n >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, dev_gMat + n * n_n, dev_gMat + n * n_p, dev_iMat + n_n, dev_iMat + n_p);
+				checkCUDAError("vdc setup failed!");
+			}
+			else if (n_p >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_p, NULL, dev_iMat + n_p);
+				checkCUDAError("vdc setup failed!");
+			}
+			else if (n_n >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_n, NULL, dev_iMat + n_n);
+				checkCUDAError("vdc setup failed!");
+			}
 		}
 		numBlocks = ceil(float(n_vdc) / float(BS_1D));
 		kernVDCtoMat << < numBlocks, BS_1D >> >(n_vdc, n, dev_net->vdcList, dev_gMat, dev_iMat, dev_vMat);

@@ -178,7 +178,7 @@ int parseElement(char* line, Netlist* netlist) {
 		token = strtok(NULL, delim);
 		e.model = findModel(netlist->modelList, token, netlist->modelList.size());
 
-		cout << "Transistor " << e.name << " model: " << e.model->name << "\n";
+		//cout << "Transistor " << e.name << " model: " << e.model->name << "\n";
 
 		// If null may need to throw error. For now:
 		if (e.model == NULL) {
@@ -371,84 +371,84 @@ void parseCmd(char* line, Netlist* netlist, ifstream* file) {
 			while (token != NULL) {
 				token = strlwr(token);
 				if (strcmp(token, "toxe") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->tox = atof(token);
 
-					cout << std::scientific << M_ptr->tox << "\n";
+					//cout << std::scientific << M_ptr->tox << "\n";
 				}
 				else if (strcmp(token, "vth0") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->vt0 = atof(token);
 
-					cout << std::scientific << M_ptr->vt0 << "\n";
+					//cout << std::scientific << M_ptr->vt0 << "\n";
 				}
 				else if (strcmp(token, "u0") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->u0 = atof(token);
 
-					cout << std::scientific << M_ptr->u0 << "\n";
+					//cout << std::scientific << M_ptr->u0 << "\n";
 				}
 				else if (strcmp(token, "pclm") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->pclm = atof(token);
 
-					cout << std::scientific << M_ptr->pclm << "\n";
+					//cout << std::scientific << M_ptr->pclm << "\n";
 				}
 				else if (strcmp(token, "vsat") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->vsat = atof(token);
 
-					cout << std::scientific << M_ptr->vsat << "\n";
+					//cout << std::scientific << M_ptr->vsat << "\n";
 				}
 				else if (strcmp(token, "nfactor") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->nfactor = atof(token);
 
-					cout << std::scientific << M_ptr->nfactor << "\n";
+					//cout << std::scientific << M_ptr->nfactor << "\n";
 				}
 				else if (strcmp(token, "cgso") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->CGSO = atof(token);
 
-					cout << std::scientific << M_ptr->CGSO << "\n";
+					//cout << std::scientific << M_ptr->CGSO << "\n";
 				}
 				else if (strcmp(token, "cgdo") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->CGDO = atof(token);
 
-					cout << std::scientific << M_ptr->CGDO << "\n";
+					//cout << std::scientific << M_ptr->CGDO << "\n";
 				}
 				else if (strcmp(token, "cgbo") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->CGBO = atof(token);
 
-					cout << std::scientific << M_ptr->CGBO << "\n";
+					//cout << std::scientific << M_ptr->CGBO << "\n";
 				}
 				else if (strcmp(token, "epsrox") == 0) {
-					cout << "Parameter: " << token << " = ";
+					//cout << "Parameter: " << token << " = ";
 
 					token = strtok(NULL, delim);
 					M_ptr->epsrox = atof(token);
 
-					cout << std::scientific << M_ptr->epsrox << "\n";
+					//cout << std::scientific << M_ptr->epsrox << "\n";
 				}
 				
 				token = strtok(NULL, delim);

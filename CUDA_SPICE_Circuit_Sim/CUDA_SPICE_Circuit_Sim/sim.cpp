@@ -67,13 +67,13 @@ void op(Netlist* netlist) {
 		// Iteration counter
 		n++;
 	}
-
+	
 	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
-
+	
 	freeMat2D(gMat, num_nodes);
 	free(iMat);
 	free(vMat);
@@ -159,7 +159,7 @@ void cuda_op(Netlist* netlist) {
 	copyFromDevMats(num_nodes, gMat, dev_gMat, iMat, dev_iMat, vMat, dev_vMat);
 
 
-
+	
 	// Test Output
 	cout << "TEST: Original Passive G Matrix\n" << mat2DToStr(gMatCpy, num_nodes, num_nodes);
 
@@ -168,7 +168,7 @@ void cuda_op(Netlist* netlist) {
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
-
+	
 	// memory cleanup
 	cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
 	freeMat2D(gMat, num_nodes);
@@ -227,6 +227,12 @@ void dcSweep(Netlist* netlist, char* name, float start, float stop, float step) 
 			swp_elem = &(mosList[i]);
 		}
 	}
+
+	if (swp_elem == NULL) {
+		cout << "\nElement not found!\n";
+		return;
+	}
+
 
 	// Make copy of original value
 	// Set to start

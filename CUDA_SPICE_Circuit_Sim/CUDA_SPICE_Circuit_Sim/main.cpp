@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 	steady_clock::time_point t2 = steady_clock::now();
 
 	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "Netlist parser took " << time_span.count() << " seconds.\n";
+	cout << "\nNetlist parser took " << time_span.count() << " seconds.\n";
 
 	cuda_op(netlist);
 
@@ -29,14 +29,14 @@ int main(int argc, char** argv) {
 	op(netlist);
 	t2 = steady_clock::now();
 	time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "Unoptimized OP Solver took " << time_span.count() << " seconds.\n";
+	cout << "\nUnoptimized OP Solver took " << time_span.count() << " seconds.\n";
 
 	t1 = steady_clock::now();
 	cuda_op(netlist);
 	t2 = steady_clock::now();
 
 	time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "OP Solver took " << time_span.count() << " seconds.\n";
+	cout << "\nOP Solver took " << time_span.count() << " seconds.\n";
 
 	/*
 	TEST: DC Sweep
@@ -46,8 +46,12 @@ int main(int argc, char** argv) {
 	float stop = 5e-9;
 	float step = 0.01e-9f;
 
-	//transient(netlist, start, stop, step);
+	t1 = steady_clock::now();
+	transient(netlist, start, stop, step);
+	t2 = steady_clock::now();
 
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "\nTransient Solver took " << time_span.count() << " seconds.\n";
 
 	start = 0.0f;
 	stop = 1.0f;
@@ -55,8 +59,12 @@ int main(int argc, char** argv) {
 
 	char* name = "VPulse@0";
 
-	//dcSweep(netlist, name, start, stop, step);
+	t1 = steady_clock::now();
+	dcSweep(netlist, name, start, stop, step);
+	t2 = steady_clock::now();
 
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "\nDC Sweep Solver took " << time_span.count() << " seconds.\n";
 
 	//cout << "\n*******************\n" << "CUDA Netlist Test" << "\n*******************\n";
 
@@ -85,10 +93,15 @@ int main(int argc, char** argv) {
 	full_cudaOp(netlist, dev_net);
 	t2 = steady_clock::now();
 	time_span = duration_cast<duration<double>>(t2 - t1);
-	cout << "Full CUDA OP Solver took " << time_span.count() << " seconds.\n";
+	cout << "\nFull CUDA OP Solver took " << time_span.count() << " seconds.\n";
 	
 	free(netlist);
 	free(dev_net);
+
+
+
+
+	system("pause");
 	return 0;
 
 
