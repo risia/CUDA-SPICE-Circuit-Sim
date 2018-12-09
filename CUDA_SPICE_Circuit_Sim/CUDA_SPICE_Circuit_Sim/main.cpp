@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 	stop = 1.0f;
 	step = 0.01f;
 
-	char* name = "VPulse@0";
+	char* name = "VDC@1";
 
 	t1 = steady_clock::now();
 	dcSweep(netlist, name, start, stop, step);
