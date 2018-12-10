@@ -19,6 +19,8 @@ You press start to perform the simulation and write to the file.
 The simulator requires a SPICE netlist as input. This can be any file using the SPICE format to describe circuit elements and their connections and values. The simulator uses "gnd" as the hard-coded ground node name, also hard-code aliased as "0" if your netlist generator uses numbers instead. The parser currently does NOT support subcircuits, .global, and any simulation commands.  
 Currently the simulator only supports the following elements: resistors, DC and Pulse voltage sources, current sources, VCCS's, capacitors, and MOSFETs with model files.  
   
+![Input Example](img/Test1spi.PNG)
+  
 ### Operating Point Simulation
   
 The OP simulation solves the circuit for the default DC parameters specified in the netlist. The output is a single row of solved voltage data for each node in the circuit.
@@ -33,6 +35,24 @@ This simulation sweeps the first parameter of the named element over the range a
 The transient simulation sweeps the circuit over time. This is where the pulse voltage sources and capacitors, as time-dependent elements, factor in. Additionally, the transistor parasitic capacitances become important here. The output is the node voltages for each timestep, useful for clocked or time-varying circuits.
   
   
+## CUDA Circuit Solver  
+  
+  
+Each element of the circuit must be linearized. MOSFETs, for example, are inherently non-linear devices even in ideal conditions. To perform the linearization, elements are broken up into conductance (G) and current (I) components using Kirchhoff's Current Law nodal analysis. For non-linear components a "guess" voltage must be supplied, and the circuit solved multiple times until the guess becomes within a tolerance "close enough" to the previous guess. In this implementation, this tolerance is a fixed 1uV. 
+  
+![Voltage Source](img/VDC_to_IandG.png)
+  
+![MOSFET](img/NMOS_to_IandG.png)
+  
+  
+ Once the G and I matrices are generated, the solver computes the Voltage matrix from the equation G * V = I. This is repeated for each step in convergence, and for each step in a DC or transient sweep.
+ 
+ ## Output  
+   
+ Output voltage data is formatted as a .csv (comma-separated value) file, with the first row the node labels from the netlist and the following rows the simulation voltages for each node. In a transient or DC sweep, the left-most column is labelled as the swept element and the values are of the parameter swept. In a transient simulation this is the time.  
+   
+ ![Output Example](img/outputExample.PNG)
+   
   
 ## Performance Analysis
   
