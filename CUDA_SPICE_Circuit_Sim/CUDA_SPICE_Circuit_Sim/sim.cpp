@@ -479,3 +479,99 @@ void transient(Netlist* netlist, float start, float stop, float step) {
 	free(vPrev);
 	freeMat2D(vSimMat, n_steps - skipped_steps);
 }
+
+void OP_CPUtest(Netlist* netlist) {
+	int num_nodes = netlist->netNames.size() - 1; // node 0 = GND
+	int num_mos = netlist->active_elem.size();
+	int num_vdc = netlist->vdcList.size();
+	Element* mosList = netlist->active_elem.data();
+	Element* vdcList = netlist->vdcList.data();
+
+	// Conductance Matrix
+	float** gMat = mat2D(num_nodes, num_nodes);
+
+	// Current Matrix
+	float* iMat = mat1D(num_nodes);
+
+	// Voltage Matrix (what we're solving)
+	float* vMat = mat1D(num_nodes);
+
+	// Store prev. guess for calc. and comparison
+	float* vGuess = mat1D(num_nodes);
+
+	linNetlistToMat(netlist, gMat, iMat);
+
+	for (int i = 0; i < num_vdc; i++) {
+		Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+	}
+
+	for (int i = 0; i < num_nodes; i++) {
+		matReduce(gMat, iMat, num_nodes, num_nodes, i);
+	}
+	for (int i = num_nodes - 1; i >= 0; i--) {
+		matSolve(gMat, iMat, vMat, num_nodes, num_nodes, i);
+	}
+
+
+
+	// Max error between current and previous guess
+	bool isConverged = false;
+	if (num_mos == 0) isConverged = true;
+
+	// Loop counter
+	int n = 0;
+	// Limit n to 1000 to prevent inf loop
+	// in case of no convergence/bad circuit
+	while (!isConverged && n < 1000 && num_mos > 0) {
+		// copy prev. guess
+		matCpy(vGuess, vMat, num_nodes);
+
+		// Reset matrices
+		resetMat2D(gMat, num_nodes, num_nodes);
+		resetMat1D(iMat, num_nodes);
+		resetMat1D(vMat, num_nodes);
+
+		// Apply passive elements
+		linNetlistToMat(netlist, gMat, iMat);
+
+		// Apply Transistor
+		for (int i = 0; i < num_mos; i++) {
+			MOS_toMat(&mosList[i], gMat, iMat, vGuess, num_nodes);
+		}
+		// Recalc VDC currents
+		for (int i = 0; i < num_vdc; i++) {
+			Vdc_toMat(vdcList + i, gMat, iMat, vMat, num_nodes);
+		}
+
+		// Attempt solution
+		for (int i = 0; i < num_nodes; i++) {
+			matReduce(gMat, iMat, num_nodes, num_nodes, i);
+		}
+		for (int i = 0; i < num_nodes; i++) {
+			matSolve(gMat, iMat, vMat, num_nodes, num_nodes, i);
+		}
+
+		// Measure error beteen old and new guess
+		isConverged = matDiffCmp(vGuess, vMat, num_nodes, TOL);
+
+		// Iteration counter
+		n++;
+	}
+	/*
+	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
+	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
+	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+
+	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
+	*/
+
+
+	//cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
+
+	freeMat2D(gMat, num_nodes);
+	free(iMat);
+	free(vMat);
+	free(vGuess);
+
+
+}

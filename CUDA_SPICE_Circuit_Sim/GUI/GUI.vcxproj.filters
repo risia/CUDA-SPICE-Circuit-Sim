@@ -33,6 +33,9 @@
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\transistor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\linSolver.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MyForm.h">

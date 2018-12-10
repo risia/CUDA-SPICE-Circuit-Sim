@@ -24,6 +24,7 @@
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="transistor.cpp" />
     <ClCompile Include="sim.cpp" />
+    <ClCompile Include="linSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="spice.h">

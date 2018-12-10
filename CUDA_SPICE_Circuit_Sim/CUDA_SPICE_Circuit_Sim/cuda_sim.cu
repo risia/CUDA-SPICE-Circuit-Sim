@@ -102,7 +102,8 @@ void full_cudaOp(Netlist* net, CUDA_Net* dev_net) {
 	cout << "\n*******************\n" << "CUDA Netlist Test" << "\n*******************\n";
 	cout << mat2DToStr(gMat, num_nodes, num_nodes) << "\n" << mat1DToStr(iMat, num_nodes) << "\n" << mat1DToStr(vMat, num_nodes);
 	*/
-
+	//cout << "\n" << mat1DToStr(vMat, num_nodes);
+	
 
 	free(iMat);
 	free(vMat);

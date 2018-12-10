@@ -185,6 +185,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <GPUDebugInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GPUDebugInfo>
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_50,sm_50</CodeGeneration>
     </CudaCompile>
+    <ClCompile Include="linSolver.cpp" />
     <ClCompile Include="sim.cpp" />
     <ClCompile Include="transistor.cpp" />
     <CudaCompile Include="cuda_LinSolver.cu">

@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\helpers.cpp" />
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\kcl.cpp" />
+    <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\linSolver.cpp" />
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\sim.cpp" />
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\spice.cpp" />
     <ClCompile Include="..\CUDA_SPICE_Circuit_Sim\transistor.cpp" />

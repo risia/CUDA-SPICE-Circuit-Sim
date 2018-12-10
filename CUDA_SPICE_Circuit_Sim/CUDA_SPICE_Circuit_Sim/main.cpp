@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 	float step = 0.01f;
 
 	char* name = "VDC@0";
-
+	/*
 	t1 = steady_clock::now();
 
 	full_cudaDCSweep(netlist, dev_net, name, start, stop, step);
@@ -85,6 +85,16 @@ int main(int argc, char** argv) {
 
 	time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "\nFull CUDA Transient Solver took " << time_span.count() << " seconds.\n";
+	*/
+
+	// CPU Test Comparison
+
+	t1 = steady_clock::now();
+	OP_CPUtest(netlist);
+	t2 = steady_clock::now();
+
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "\nFull CPU OP Solver took " << time_span.count() << " seconds.\n";
 
 	/*
 	t1 = steady_clock::now();
