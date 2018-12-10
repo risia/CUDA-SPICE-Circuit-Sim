@@ -76,5 +76,21 @@ From these performance tests, as expected larger circuits benefit the most from 
 In the DC Sweep and Transient cases, the time to complete the analysis is proportional to the number of steps times the time for a OP simulation. In a large circuit requiring thousands of timesteps of simulation, the faster CUDA simulation could save a lot of time.
   
   
+## Build Instructions  
+  
+The project was built in Visual Studio 2015 x64. The GUI requires special linker instructions to build. The linker requires the cuda libraries as additional dependencies. On a 64-bit operating system, the entry point should be specified as  
+"?mainCRTStartupStrArray@@$$FYMHP$01EAPE$AAVString@System@@@Z"  
+to build and run correctly. Additionally, under C/C++ the dependencies from CUDA_Spice_Circuit_Sim must me specified (the folder containing all the header and cpp/cu files for the project). "SubSystem" is not set so cmd window debug info can be printed.  
+  
+The program can be run from the GUI executable. The CUDA_Spice_Circuit_Sim executable currently just runs timing comparisons, and requires a netlist file command line argument.
+
+### References
+[Spice Overview](https://www.seas.upenn.edu/~jan/spice/spice.overview.html)  
+
+[Spice MOSFET Model Parameters](https://www.ece.ubc.ca/~robertor/Links_files/Files/ICCAP-2008-doc/icmdl/icmdl048.html)
+  
+[Transient Analysis](http://www.ecircuitcenter.com/SpiceTopics/Transient%20Analysis/Transient%20Analysis.htm)
+  
+[Spice Algorithm](https://www.cl.cam.ac.uk/teaching/1314/NumMethods/supporting/spice-wolfram-blume-byte1986.pdf)
   
   
