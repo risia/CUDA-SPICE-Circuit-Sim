@@ -103,7 +103,7 @@ bool matDiffCmp(float* mat1, float* mat2, int n, float tol) {
 
 void mat2DtoCSV(char** labels, float** mat, int m, int n, char* filename) {
 	ofstream file;
-	file.open(filename);
+	file.open(filename, std::ios_base::app);
 
 	file.precision(6);
 

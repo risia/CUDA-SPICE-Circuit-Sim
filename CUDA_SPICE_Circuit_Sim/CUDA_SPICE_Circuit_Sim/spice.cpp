@@ -5,6 +5,8 @@ int parseNetlist(const char* filepath, Netlist* netlist) {
 	ifstream inFile(filepath);
 	char line[MAX_LINE];
 
+	cout << "TEST: Filepath "<< filepath << "\n";
+
 	// Initialize element arrays
 	// So in the future users could run more
 	// than one file per session

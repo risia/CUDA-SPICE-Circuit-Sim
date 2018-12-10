@@ -67,13 +67,14 @@ void op(Netlist* netlist) {
 		// Iteration counter
 		n++;
 	}
-	
+	/*
 	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
-	
+	*/
+
 	freeMat2D(gMat, num_nodes);
 	free(iMat);
 	free(vMat);
@@ -161,14 +162,15 @@ void cuda_op(Netlist* netlist) {
 
 	
 	// Test Output
-	cout << "TEST: Original Passive G Matrix\n" << mat2DToStr(gMatCpy, num_nodes, num_nodes);
-
+	//cout << "TEST: Original Passive G Matrix\n" << mat2DToStr(gMatCpy, num_nodes, num_nodes);
+	/*
 	cout << "\nFinal Solution:\n\n" << "G Matrix:\n" << mat2DToStr(gMat, num_nodes, num_nodes);
 	cout << "I Matrix:\n" << mat1DToStr(iMat, num_nodes);
 	cout << "V Matrix:\n" << mat1DToStr(vMat, num_nodes);
 
 	cout << "Converged? : " << (isConverged ? "true" : "false") << "\n";
-	
+	*/
+
 	// memory cleanup
 	cleanDevMats(dev_gMat, dev_iMat, dev_vMat);
 	freeMat2D(gMat, num_nodes);
@@ -196,19 +198,6 @@ void dcSweep(Netlist* netlist, char* name, float start, float stop, float step) 
 	int num_vdc = netlist->vdcList.size();
 	Element* vdcList = netlist->vdcList.data();
 
-	// Setup matrices
-	float** gMat = mat2D(num_nodes, num_nodes);
-	float* iMat = mat1D(num_nodes);
-	float* vMat = mat1D(num_nodes);
-	float* vGuess = mat1D(num_nodes);
-
-	int num_steps = floor(1 + (stop - start) / step) ;
-	if (stop > (start + step * num_steps)) num_steps++;
-
-	// rows are sweep step, columns node voltage
-	// col 0 is current val of swept parameter for that solution
-	float** vSweepMat = mat2D(num_steps, num_nodes + 1);
-
 	// find element named & setup matrices
 	Element* swp_elem = NULL; //linNetlistToMatFindElem(netlist, gMat, iMat, vMat, name);
 
@@ -232,6 +221,19 @@ void dcSweep(Netlist* netlist, char* name, float start, float stop, float step) 
 		cout << "\nElement not found!\n";
 		return;
 	}
+
+	// Setup matrices
+	float** gMat = mat2D(num_nodes, num_nodes);
+	float* iMat = mat1D(num_nodes);
+	float* vMat = mat1D(num_nodes);
+	float* vGuess = mat1D(num_nodes);
+
+	int num_steps = floor(1 + (stop - start) / step);
+	if (stop > (start + step * num_steps)) num_steps++;
+
+	// rows are sweep step, columns node voltage
+	// col 0 is current val of swept parameter for that solution
+	float** vSweepMat = mat2D(num_steps, num_nodes + 1);
 
 
 	// Make copy of original value
