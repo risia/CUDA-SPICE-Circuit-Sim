@@ -48,6 +48,66 @@ __global__ void kernDCPassiveMat(int n, int n_nodes, CUDA_Elem* passives, float*
 	
 }
 
+__global__ void kernTranPassMat(int n, int n_nodes, CUDA_Elem* passives, float* gMat, float* iMat, float* vPrev, float h) {
+	int idx = blockDim.x * blockIdx.x + threadIdx.x; // element index
+
+	if (idx >= n) return;
+
+	CUDA_Elem* e = passives + idx;
+	char type = e->type;
+
+	if (type != 'R' && type != 'I' && type != 'G' && type != 'C') return;
+
+	int a = e->nodes[0] - 1;
+	int b = e->nodes[1] - 1;
+
+
+	float val = e->params[0];
+
+
+	if (type == 'R') {
+		val = 1.0f / val;
+	}
+	if (type == 'C') {
+		val = val / h;
+	}
+
+	// If it's shorted, no contribution
+	if (a == b) return;
+
+	// DC Current Source
+	if (type == 'I') {
+		if (a >= 0) atomicAdd(iMat + a, -val);
+		if (b >= 0) atomicAdd(iMat + b, val);
+		return;
+	}
+
+	int c = (type == 'G') ? e->nodes[2] : a;
+	int d = (type == 'G') ? e->nodes[3] : b;
+
+	if (c == d) return;
+
+	// Resistor or VCCS
+	if (a >= 0 && c >= 0) {
+		atomicAdd(gMat + (a * n_nodes + c), val);
+		if (type == 'C') atomicAdd(iMat + a, val * vPrev[a]);
+	}
+	if (b >= 0 && d >= 0) {
+		atomicAdd(gMat + (b * n_nodes + d), val);
+		if (type == 'C') atomicAdd(iMat + b, val * vPrev[b]);
+	}
+
+	if (b >= 0 && a >= 0 && d >= 0 && c >= 0) {
+		atomicAdd(gMat + (a * n_nodes + d), -val);
+		atomicAdd(gMat + (b * n_nodes + c), -val);
+		if (type == 'C') {
+			atomicAdd(iMat + a, -val * vPrev[b]);
+			atomicAdd(iMat + b, -val * vPrev[a]);
+		}
+	}
+
+}
+
 
 __global__ void kernVDCtoMat(int n_v, int n_nodes, CUDA_Elem* elems, float* gMat, float* iMat, float* vMat) {
 	int idx = blockDim.x * blockIdx.x + threadIdx.x; // element index
@@ -88,6 +148,79 @@ __global__ void kernVDCtoMat(int n_v, int n_nodes, CUDA_Elem* elems, float* gMat
 		else if (vMat[n] != 0.0f) vMat[p] = vMat[n] + val;
 	}
 
+}
+
+__global__ void kernTranVtoMat(int n_v, int n_nodes, float time, CUDA_Elem* elems, float* gMat, float* iMat, float* vMat) {
+	int idx = blockDim.x * blockIdx.x + threadIdx.x; // element index
+	if (idx >= n_v) return;
+
+	CUDA_Elem* V = elems + idx;
+	int n = V->nodes[1] - 1; // pos node
+	int p = V->nodes[0] - 1; // neg node
+
+	// shorted
+	if (n == p) return;
+
+	// Fully DC Source
+	if (V->type == 'V') {
+		float val = V->params[0];
+		if (p >= 0 && n < 0) {
+			gMat[p * (n_nodes + 1)] = 1.0f;
+			iMat[p] = val;
+			vMat[p] = val;
+		}
+		else if (p < 0 && n >= 0) {
+			gMat[n * (n_nodes + 1)] = 1.0f;
+			iMat[n] = -val;
+			vMat[n] = -val;
+		}
+		else {
+			iMat[p] = val;
+			gMat[p * n_nodes + n] = -1.0f;
+			gMat[p * (n_nodes + 1)] = 1.0f;
+			if (vMat[p] != 0.0f) vMat[n] = vMat[p] - val;
+			else if (vMat[n] != 0.0f) vMat[p] = vMat[n] + val;
+		}
+	}
+	else if (V->type == 'P') {
+		// Pulse Parameters
+		float V1 = V->params[1]; // initial val
+		float V2 = V->params[2]; // peak val
+		float td = V->params[3]; // initial delay
+		float tr = V->params[4]; // rise time
+		float tf = V->params[5]; // fall time
+		float width = V->params[6]; // pulse width
+		float period = V->params[7]; // period, time for one cycle
+
+		// put time in context of current pulse
+		float p_time = (time - td) - period * floor((time - td) / period);
+
+		// Calculate voltage value for time instance
+		float val;
+		if (time < td) val = 0.0f; // time is before pulse start
+		else if (p_time < tr) val = V1 + (p_time * (V2 - V1)) / tr; // interpolate value
+		else if (p_time < width) val = V2;
+		else if (p_time < tf + width) val = V2 - ((p_time - width) * (V2 - V1)) / tf; // interpolate value
+		else val = V1;
+
+		if (p >= 0 && n < 0) {
+			gMat[p * (n_nodes + 1)] = 1.0f;
+			iMat[p] = val;
+			vMat[p] = val;
+		}
+		else if (p < 0 && n >= 0) {
+			gMat[n * (n_nodes + 1)] = 1.0f;
+			iMat[n] = -val;
+			vMat[n] = -val;
+		}
+		else {
+			iMat[p] = val;
+			gMat[p * n_nodes + n] = -1.0f;
+			gMat[p * (n_nodes + 1)] = 1.0f;
+			if (vMat[p] != 0.0f) vMat[n] = vMat[p] - val;
+			else if (vMat[n] != 0.0f) vMat[p] = vMat[n] + val;
+		}
+	}
 }
 
 
@@ -386,4 +519,83 @@ void gpuNetlistToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float
 		checkCUDAError("vdc setup fail!");
 	}
 
+}
+
+
+void gpuTranPassVToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float* dev_iMat, float* dev_vMat, float* dev_vPrev, float time, float h) {
+	int n = dev_net->n_nodes;
+	if (n == 0) return;
+	int n_passive = dev_net->n_passive;
+	int numBlocks = ceil(float(n_passive) / float(BS_1D));
+
+	// Passives
+	if (n_passive > 0) kernTranPassMat << < numBlocks, BS_1D >> >(n_passive, n, dev_net->passives, dev_gMat, dev_iMat, dev_vPrev, h);
+	checkCUDAError("Matrix Gen Kernel Failure!\n");
+
+	// Voltage sources
+	int n_vdc = dev_net->n_vdc;
+	int n_p;
+	int n_n;
+
+	if (n_vdc > 0) {
+		numBlocks = ceil(float(n) / float(BS_1D));
+		// We're assuming more nodes than voltage sources, generally correct
+		for (int i = 0; i < n_vdc; i++) {
+			n_p = netlist->vdcList[i].nodes[0] - 1;
+			n_n = netlist->vdcList[i].nodes[1] - 1;
+			if (n_p >= 0 && n_n >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, dev_gMat + n * n_n, dev_gMat + n * n_p, dev_iMat + n_n, dev_iMat + n_p);
+			else if (n_p >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_p, NULL, dev_iMat + n_p);
+			else if (n_n >= 0) kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_n, NULL, dev_iMat + n_n);
+		}
+		numBlocks = ceil(float(n_vdc) / float(BS_1D));
+		kernTranVtoMat << < numBlocks, BS_1D >> >(n_vdc, n, time, dev_net->vdcList, dev_gMat, dev_iMat, dev_vMat);
+	}
+
+}
+
+void gpuTranNetToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float* dev_iMat, float* dev_vMat, float* dev_vGuess, float* dev_vPrev, float time, float h) {
+	int n = dev_net->n_nodes;
+	if (n == 0) return;
+	int n_passive = dev_net->n_passive;
+	int numBlocks = ceil(float(n_passive) / float(BS_1D));
+
+	// Passives
+	if (n_passive > 0) kernTranPassMat << < numBlocks, BS_1D >> >(n_passive, n, dev_net->passives, dev_gMat, dev_iMat, dev_vPrev, h);
+	checkCUDAError("Matrix Gen Kernel Failure!\n");
+
+	// Transistors
+	int n_active = dev_net->n_active;
+	if (n_active > 0) {
+		numBlocks = ceil(float(n_active) / float(BS_1D));
+		kernelMOStoMat << <numBlocks, BS_1D >> >(n_active, n, dev_net->actives, dev_net->modelList, dev_gMat, dev_iMat, dev_vGuess);
+		checkCUDAError("MOS Matrix Kernel Failure!\n");
+	}
+
+	// Voltage sources
+	int n_vdc = dev_net->n_vdc;
+	int n_p;
+	int n_n;
+	if (n_vdc > 0) {
+		// We're assuming more nodes than voltage sources, generally correct
+		numBlocks = ceil(float(n) / float(BS_1D));
+		for (int i = 0; i < n_vdc; i++) {
+			n_p = netlist->vdcList[i].nodes[0] - 1;
+			n_n = netlist->vdcList[i].nodes[1] - 1;
+			if (n_p >= 0 && n_n >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, dev_gMat + n * n_n, dev_gMat + n * n_p, dev_iMat + n_n, dev_iMat + n_p);
+				checkCUDAError("vdc setup failed!");
+			}
+			else if (n_p >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_p, NULL, dev_iMat + n_p);
+				checkCUDAError("vdc setup failed!");
+			}
+			else if (n_n >= 0) {
+				kernelAddandZero << < numBlocks, BS_1D >> > (n, NULL, dev_gMat + n * n_n, NULL, dev_iMat + n_n);
+				checkCUDAError("vdc setup failed!");
+			}
+		}
+		numBlocks = ceil(float(n_vdc) / float(BS_1D));
+		kernTranVtoMat << < numBlocks, BS_1D >> >(n_vdc, n, time, dev_net->vdcList, dev_gMat, dev_iMat, dev_vMat);
+		checkCUDAError("vdc setup fail!");
+	}
 }

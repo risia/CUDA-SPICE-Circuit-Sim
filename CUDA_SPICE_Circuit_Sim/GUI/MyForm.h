@@ -380,17 +380,86 @@ namespace GUI {
 	}
 	private: System::Void startButton_Click(System::Object^  sender, System::EventArgs^  e) {
 		if (opCB->Checked) {
-			logBox->AppendText("Performing OP Sim...");
+			if (CSpi->checkNetlist() != 0) {
+				logBox->AppendText("Error! Netlist not loaded!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
+			logBox->AppendText("Performing DC Sweep Sim...");
 			logBox->AppendText(Environment::NewLine);
 
-			CSpi->guiOP();
+			char** labels = CSpi->guiOP();
+			if (labels == NULL) {
+				logBox->AppendText("Error!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
 
 			logBox->AppendText("Writing data output...");
 			logBox->AppendText(Environment::NewLine);
 
 			String^ s = outputTB->Text;
 
-			CSpi->outToCSV(s);
+			CSpi->outToCSV(s, labels);
+
+			logBox->AppendText("Data written to ");
+			logBox->AppendText(s);
+			logBox->AppendText(Environment::NewLine);
+		}
+		if (dcSweepCB->Checked) {
+			if (CSpi->checkNetlist() != 0) {
+				logBox->AppendText("Error! Netlist not loaded!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
+			logBox->AppendText("Performing DC Sweep Sim...");
+			logBox->AppendText(Environment::NewLine);
+
+			char** labels = CSpi->guiDCSweep(elemTB->Text, startTB->Text, stopTB->Text, stepTB->Text);
+			if (labels == NULL) {
+				logBox->AppendText("Error!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
+			logBox->AppendText("Writing data output...");
+			logBox->AppendText(Environment::NewLine);
+
+			String^ s = outputTB->Text;
+
+			CSpi->outToCSV(s, labels);
+
+			logBox->AppendText("Data written to ");
+			logBox->AppendText(s);
+			logBox->AppendText(Environment::NewLine);
+		}
+
+		if (tranCB->Checked) {
+			if (CSpi->checkNetlist() != 0) {
+				logBox->AppendText("Error! Netlist not loaded!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
+			logBox->AppendText("Performing Transient Sim...");
+			logBox->AppendText(Environment::NewLine);
+
+			char** labels = CSpi->guiTran(startTB->Text, stopTB->Text, stepTB->Text);
+			if (labels == NULL) {
+				logBox->AppendText("Error!");
+				logBox->AppendText(Environment::NewLine);
+				return;
+			}
+
+			logBox->AppendText("Writing data output...");
+			logBox->AppendText(Environment::NewLine);
+
+			String^ s = outputTB->Text;
+
+			CSpi->outToCSV(s, labels);
 
 			logBox->AppendText("Data written to ");
 			logBox->AppendText(s);

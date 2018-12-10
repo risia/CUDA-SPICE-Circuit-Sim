@@ -61,10 +61,26 @@ int main(int argc, char** argv) {
 	/*
 	TEST: Transient & DC Sweep
 	*/
-	
-	float start = 0;
-	float stop = 5e-9;
-	float step = 0.01e-9f;
+
+	float start = 0.0f;
+	float stop = 1.0f;
+	float step = 0.01f;
+
+	char* name = "VDC@1";
+
+	t1 = steady_clock::now();
+
+	full_cudaDCSweep(netlist, dev_net, name, start, stop, step);
+
+	t2 = steady_clock::now();
+
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "\nFull CUDA DC Sweep Solver took " << time_span.count() << " seconds.\n";
+
+	/*
+	start = 0;
+	stop = 5e-9;
+	step = 0.01e-9f;
 
 	t1 = steady_clock::now();
 
@@ -79,7 +95,7 @@ int main(int argc, char** argv) {
 	stop = 1.0f;
 	step = 0.01f;
 
-	char* name = "VDC@1";
+	name = "VDC@1";
 
 	t1 = steady_clock::now();
 
@@ -90,7 +106,7 @@ int main(int argc, char** argv) {
 	time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "\nDC Sweep Solver took " << time_span.count() << " seconds.\n";
 
-
+	*/
 	
 	free(netlist);
 	free(dev_net);
