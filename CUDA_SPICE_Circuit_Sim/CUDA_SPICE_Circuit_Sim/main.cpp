@@ -26,9 +26,6 @@ int main(int argc, char** argv) {
 	duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "\nNetlist parser took " << time_span.count() << " seconds.\n";
 
-	cuda_op(netlist);
-
-
 	t1 = steady_clock::now();
 
 	op(netlist);
@@ -57,7 +54,6 @@ int main(int argc, char** argv) {
 
 
 
-
 	/*
 	TEST: Transient & DC Sweep
 	*/
@@ -66,7 +62,7 @@ int main(int argc, char** argv) {
 	float stop = 1.0f;
 	float step = 0.01f;
 
-	char* name = "VDC@1";
+	char* name = "VDC@0";
 
 	t1 = steady_clock::now();
 
@@ -77,11 +73,20 @@ int main(int argc, char** argv) {
 	time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "\nFull CUDA DC Sweep Solver took " << time_span.count() << " seconds.\n";
 
-	/*
+
+
 	start = 0;
 	stop = 5e-9;
 	step = 0.01e-9f;
 
+	t1 = steady_clock::now();
+	full_CudaTran(netlist, dev_net, start, stop, step);
+	t2 = steady_clock::now();
+
+	time_span = duration_cast<duration<double>>(t2 - t1);
+	cout << "\nFull CUDA Transient Solver took " << time_span.count() << " seconds.\n";
+
+	/*
 	t1 = steady_clock::now();
 
 	transient(netlist, start, stop, step);
@@ -95,7 +100,7 @@ int main(int argc, char** argv) {
 	stop = 1.0f;
 	step = 0.01f;
 
-	name = "VDC@1";
+	name = "VDC@0";
 
 	t1 = steady_clock::now();
 
@@ -105,9 +110,8 @@ int main(int argc, char** argv) {
 
 	time_span = duration_cast<duration<double>>(t2 - t1);
 	cout << "\nDC Sweep Solver took " << time_span.count() << " seconds.\n";
-
 	*/
-	
+
 	free(netlist);
 	free(dev_net);
 

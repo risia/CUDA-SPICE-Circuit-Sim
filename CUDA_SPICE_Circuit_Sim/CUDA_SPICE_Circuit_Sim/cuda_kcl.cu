@@ -322,6 +322,148 @@ __global__ void kernelMOStoMat(int n, int n_nodes, CUDA_Elem* elems, Model* mode
 	}
 }
 
+__global__ void kernelTranMOStoMat(int n, int n_nodes, CUDA_Elem* elems, Model* models, float* gMat, float* iMat, float* vGuess, float* vPrev, float h) {
+	int idx = blockDim.x * blockIdx.x + threadIdx.x; // element index
+	if (idx >= n) return;
+
+	CUDA_Elem* T = elems + idx;
+	Model* M = models + T->model;
+	char type = M->type;
+
+	float I;
+	float g;
+
+	int n_d = T->nodes[0] - 1;
+	int n_g = T->nodes[1] - 1;
+	int n_s = T->nodes[2] - 1;
+	int n_b = T->nodes[3] - 1;
+
+	// Load guessed node voltages
+	float Vg = 0.0f;
+	if (n_g >= 0) Vg = vGuess[n_g];
+	float Vs = 0.0f;
+	if (n_s >= 0) Vs = vGuess[n_s];
+	float Vd = 0.0f;
+	if (n_d >= 0) Vd = vGuess[n_d];
+
+	if ((Vs > Vd && type == 'n') || (Vs < Vd && type == 'p')) {
+		n_s = T->nodes[0] - 1;
+		Vs = 0.0f;
+		if (n_s >= 0) Vs = vGuess[n_s];
+
+		n_d = T->nodes[2] - 1;
+		Vd = 0.0f;
+		if (n_d >= 0) Vd = vGuess[n_d];
+	}
+
+	float vth = M->vt0;
+	float Vov = Vg - Vs - vth;
+	float Vds = Vd - Vs;
+
+	// "Constants"
+	float L = T->params[0];
+	float W = T->params[1];
+	float Cox = (M->epsrox * PERMITTIVITY / (M->tox * 100.f));
+
+	float k = (W / L) * M->u0 * Cox;
+
+	float CLM = M->pclm * Vov;
+
+	if (type == 'p') {
+		k = -k;
+		CLM = -CLM;
+	}
+
+	float Cgcb = Cox * 1e-4 * W * L;
+
+	if ((Vov <= 0 && type == 'n') || (Vov >= 0 && type == 'p')) {
+		// Cgcb
+		float G = Cgcb / h;
+		if (n_g >= 0) {
+			atomicAdd(gMat + (n_g * (n_nodes + 1)), G);
+			atomicAdd(iMat + n_g, G * vPrev[n_g]);
+		}
+		if (n_b >= 0) {
+			atomicAdd(gMat + (n_b * (n_nodes + 1)), G);
+			atomicAdd(iMat + n_b, G * vPrev[n_b]);
+		}
+		if (n_g >= 0 && n_b >= 0) {
+			atomicAdd(gMat + (n_g * n_nodes + n_b), -G);
+			atomicAdd(gMat + (n_b * n_nodes + n_g), -G);
+			atomicAdd(iMat + n_g, -G * vPrev[n_b]);
+			atomicAdd(iMat + n_b, -G * vPrev[n_g]);
+		}
+		return;
+	}
+
+	// Saturation, usually desired case
+	if ((Vds > Vov && type == 'n') || (Vds < Vov && type == 'p')) {
+		float G = (2.0 / 3.0) * Cgcb / h;
+
+		g = 0.5f * k * Vov;
+		I = g * (1 - CLM) * vth;
+
+		if (n_g >= 0) {
+			atomicAdd(gMat + (n_g * n_nodes + n_g), G);
+			atomicAdd(iMat + n_g, G * vPrev[n_g]);
+		}
+		if (n_d >= 0) {
+			atomicAdd(iMat + n_d, I);
+			atomicAdd(gMat + (n_d * (n_nodes + 1)), g * CLM);
+			if (n_g >= 0) atomicAdd(gMat + (n_d * n_nodes + n_g), g * (1 - CLM));
+			if (n_s >= 0) atomicAdd(gMat + (n_d * n_nodes + n_s), -g);
+		}
+		if (n_s >= 0) {
+			atomicAdd(iMat + n_s, -I + G * vPrev[n_s]);
+			atomicAdd(gMat + (n_s * (n_nodes + 1)), g + G);
+			if (n_g >= 0) {
+				atomicAdd(gMat + (n_s * n_nodes + n_g), -g * (1 - CLM) - G);
+				atomicAdd(gMat + (n_g * n_nodes + n_s), -G);
+				atomicAdd(iMat + n_g, -G * vPrev[n_s]);
+				atomicAdd(iMat + n_s, -G * vPrev[n_g]);
+			}
+			if (n_d >= 0) atomicAdd(gMat + (n_s * n_nodes + n_d), -g * CLM);
+		}
+	}
+	// "linear" region
+	else {
+		float ratio = (Vd - Vs) / Vov;
+		float Gs = (0.5f + ratio / 6.0f) * Cgcb / h;
+		float Gd = 0.5f * (1 - ratio) * Cgcb / h;
+
+		g = k * Vov;
+		I = k * 0.5 * (Vds * Vds);
+
+		if (n_g >= 0) {
+			atomicAdd(gMat + (n_g * (n_nodes + 1)), Gs + Gd);
+			atomicAdd(iMat + n_g, (Gs + Gd) * vPrev[n_g]);
+			if (n_s >= 0) {
+				atomicAdd(gMat + (n_g * n_nodes + n_s), -Gs);
+				atomicAdd(gMat + (n_s * n_nodes + n_g), -Gs);
+				atomicAdd(iMat + n_g, -Gs * vPrev[n_s]);
+				atomicAdd(iMat + n_s, -Gs * vPrev[n_g]);
+			}
+			if (n_d >= 0) {
+				atomicAdd(gMat + (n_g * n_nodes + n_d), -Gd);
+				atomicAdd(gMat + (n_d * n_nodes + n_g), -Gd);
+				atomicAdd(iMat + n_g, -Gd * vPrev[n_d]);
+				atomicAdd(iMat + n_d, -Gd * vPrev[n_g]);
+			}
+		}
+		if (n_d >= 0) {
+			atomicAdd(gMat + (n_d * (n_nodes + 1)), g + Gd);
+			atomicAdd(iMat + n_d, I + (Gd * vPrev[n_d]));
+			if (n_s >= 0) atomicAdd(gMat + (n_d * n_nodes + n_s), -g);
+		}
+		if (n_s >= 0) {
+			atomicAdd(gMat + (n_s * (n_nodes + 1)), g + Gs);
+			atomicAdd(iMat + n_s, -I + (Gs * vPrev[n_s]));
+			if (n_d >= 0) atomicAdd(gMat + (n_s * n_nodes + n_d), -g);
+		}
+	}
+}
+
+
 // First part of setting up Voltage sources in matrices
 __global__ void kernelAddandZero(int n, float* gMat_d, float* gMat_s, float* i_d, float* i_s) {
 	int idx = blockDim.x * blockIdx.x + threadIdx.x; // element index
@@ -567,7 +709,7 @@ void gpuTranNetToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float
 	int n_active = dev_net->n_active;
 	if (n_active > 0) {
 		numBlocks = ceil(float(n_active) / float(BS_1D));
-		kernelMOStoMat << <numBlocks, BS_1D >> >(n_active, n, dev_net->actives, dev_net->modelList, dev_gMat, dev_iMat, dev_vGuess);
+		kernelTranMOStoMat << <numBlocks, BS_1D >> >(n_active, n, dev_net->actives, dev_net->modelList, dev_gMat, dev_iMat, dev_vGuess, dev_vPrev, h);
 		checkCUDAError("MOS Matrix Kernel Failure!\n");
 	}
 

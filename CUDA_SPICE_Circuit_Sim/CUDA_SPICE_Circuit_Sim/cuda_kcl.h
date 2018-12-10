@@ -13,6 +13,9 @@ __global__ void kernTranPassMat(int n, int n_nodes, CUDA_Elem* passives, float* 
 __global__ void kernVDCtoMat(int n_v, int n_nodes, CUDA_Elem* elems, float* gMat, float* iMat, float* vMat);
 __global__ void kernTranVtoMat(int n_v, int n_nodes, float time, CUDA_Elem* elems, float* gMat, float* iMat, float* vMat);
 
+__global__ void kernelMOStoMat(int n, int n_nodes, CUDA_Elem* elems, Model* models, float* gMat, float* iMat, float* vGuess);
+__global__ void kernelTranMOStoMat(int n, int n_nodes, CUDA_Elem* elems, Model* models, float* gMat, float* iMat, float* vGuess, float* vPrev, float h);
+
 void gpuNetlistToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float* dev_iMat, float* dev_vMat, float* dev_vGuess);
 void gpuTranNetToMat(CUDA_Net* dev_net, Netlist* netlist, float* dev_gMat, float* dev_iMat, float* dev_vMat, float* dev_vGuess, float* dev_vPrev, float time, float h);
 

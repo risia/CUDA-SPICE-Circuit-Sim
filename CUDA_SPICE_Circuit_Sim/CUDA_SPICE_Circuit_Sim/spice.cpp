@@ -240,6 +240,7 @@ int parseElement(char* line, Netlist* netlist) {
 }
 
 int findNode(vector<char*> &nodeList, char* name, int n) {
+	if (strcmp(strlwr(name), "gnd") == 0 || strcmp(strlwr(name), "0") == 0) return 0;
 	int i = 0;
 	for (i = 0; i < n; i++) {
 		if (strcmp(name, nodeList[i]) == 0) break;
